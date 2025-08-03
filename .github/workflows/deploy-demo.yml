@@ -5,12 +5,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'docs/hackathon/**'
+      - 'docs/**'
       - '.github/workflows/deploy-demo.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'docs/hackathon/**'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
@@ -55,8 +55,8 @@ jobs:
           
           echo "✅ All demo files found and validated"
 
-  # Validate GitHub Pages deployment
-  validate-deployment:
+  # Build and deploy documentation
+  build-and-deploy:
     runs-on: ubuntu-latest
     needs: validate
     if: github.ref == 'refs/heads/main'
@@ -72,7 +72,6 @@ jobs:
           echo "API docs: docs/api-reference.html"
           echo "Examples: docs/examples.html"
           echo "Custom domain: evmore.droo.foo"
-          echo "CNAME file: $(cat CNAME)"
           
           # Check that all required files exist
           if [ ! -f "docs/index.html" ]; then
@@ -96,44 +95,28 @@ jobs:
           fi
           
           echo "✅ All documentation files validated"
-          echo "📝 GitHub Pages will automatically deploy from /docs folder"
-          echo "🌐 Custom domain: https://evmore.droo.foo"
 
-  # Deploy to custom domain (evmore.droo.foo)
-  deploy-custom-domain:
+      - name: Upload documentation to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  # Deploy to GitHub Pages
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: validate-deployment
-    if: github.ref == 'refs/heads/main'
+    needs: build-and-deploy
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Prepare docs for custom domain
-        run: |
-          echo "Preparing documentation for custom domain deployment..."
-          echo "Main docs: docs/index.html"
-          echo "Demo files: docs/hackathon/"
-          echo "API docs: docs/api-reference.html"
-          echo "Examples: docs/examples.html"
-          echo "Custom domain: evmore.droo.foo"
-          echo "CNAME file: $(cat CNAME)"
-
-      - name: Notify deployment
-        run: |
-          echo "🎉 Documentation ready for custom domain deployment!"
-          echo "Custom Domain: https://evmore.droo.foo"
-          echo "Main Docs: https://evmore.droo.foo"
-          echo "Demo: https://evmore.droo.foo/hackathon/"
-          echo "API Reference: https://evmore.droo.foo/api-reference.html"
-          echo "Examples: https://evmore.droo.foo/examples.html"
-          echo ""
-          echo "📝 Note: GitHub Pages will automatically deploy from /docs folder"
-          echo "🌐 Custom domain configured: evmore.droo.foo"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   # Performance and accessibility testing
   test-demo:
     runs-on: ubuntu-latest
-    needs: validate-deployment
+    needs: deploy
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
@@ -152,7 +135,7 @@ jobs:
   # Security scanning
   security-scan:
     runs-on: ubuntu-latest
-    needs: validate-deployment
+    needs: deploy
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
@@ -164,4 +147,35 @@ jobs:
           echo "- Static HTML/CSS/JS files - no vulnerabilities"
           echo "- No external dependencies with security risks"
           echo "- No sensitive data exposed"
-          echo "- HTTPS enforced for production deployment" 
+          echo "- HTTPS enforced for production deployment"
+
+  # Notify deployment status
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy, test-demo, security-scan]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "🎉 EVMore Documentation Deployment Complete!"
+          echo ""
+          echo "📚 Documentation URLs:"
+          echo "- Main Site: https://evmore.droo.foo"
+          echo "- Demo: https://evmore.droo.foo/hackathon/"
+          echo "- API Reference: https://evmore.droo.foo/api-reference.html"
+          echo "- Examples: https://evmore.droo.foo/examples.html"
+          echo "- Quick Start: https://evmore.droo.foo/quick-start.html"
+          echo ""
+          echo "📊 Deployment Summary:"
+          echo "- Source: /docs folder"
+          echo "- Custom Domain: evmore.droo.foo"
+          echo "- HTTPS: Enabled"
+          echo "- CDN: GitHub Pages"
+          echo ""
+          echo "✨ Features:"
+          echo "- Static site generation"
+          echo "- Custom domain support"
+          echo "- Demo application included"
+          echo "- API documentation"
+          echo "- Responsive design"
+          echo "- SEO optimized" 
