@@ -84,7 +84,7 @@ export class PooledEthereumHTLCClient {
   /**
    * Connect with an external signer (e.g., MetaMask)
    */
-  connect(signer: ethers.Signer): void {
+  connect(_signer: ethers.Signer): void {
     throw new Error('connect() method not supported in unified client. Use the unified client directly for external signers.');
   }
 
@@ -180,11 +180,11 @@ export class PooledEthereumHTLCClient {
         tokenContract.decimals()
       ]);
 
-      let balance: string | undefined;
-      // Note: Getting balance would require accessing the signer, which is encapsulated in the unified client
-      // For now, we'll skip the balance to maintain compatibility
-
-      return { name, symbol, decimals, balance };
+      return {
+        name,
+        symbol,
+        decimals
+      };
     });
   }
 

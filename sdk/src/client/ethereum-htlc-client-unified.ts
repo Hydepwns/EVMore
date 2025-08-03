@@ -115,7 +115,7 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
         const receipt = await tx.wait();
         
         // Extract HTLC ID from logs
-        const htlcCreatedLog = receipt.logs.find((log: any) => {
+        const htlcCreatedLog = receipt.logs.find((log: ethers.providers.Log) => {
           try {
             const parsed = contract.interface.parseLog(log);
             return parsed?.name === 'HTLCCreated';
@@ -137,9 +137,10 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
           gasUsed: receipt.gasUsed.toString(),
           success: receipt.status === 1
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new HTLCError(
-          `Failed to create HTLC: ${error.message}`,
+          `Failed to create HTLC: ${errorMessage}`,
           HTLCErrorCode.TRANSACTION_FAILED
         );
       }
@@ -177,9 +178,10 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
           gasUsed: receipt.gasUsed.toString(),
           success: receipt.status === 1
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new HTLCError(
-          `Failed to withdraw HTLC: ${error.message}`,
+          `Failed to withdraw HTLC: ${errorMessage}`,
           HTLCErrorCode.TRANSACTION_FAILED,
           htlcId
         );
@@ -214,9 +216,10 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
           gasUsed: receipt.gasUsed.toString(),
           success: receipt.status === 1
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new HTLCError(
-          `Failed to refund HTLC: ${error.message}`,
+          `Failed to refund HTLC: ${errorMessage}`,
           HTLCErrorCode.TRANSACTION_FAILED,
           htlcId
         );
@@ -340,9 +343,10 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
         );
         
         return gasEstimate.toString();
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new HTLCError(
-          `Failed to estimate gas: ${error.message}`,
+          `Failed to estimate gas: ${errorMessage}`,
           HTLCErrorCode.TRANSACTION_FAILED
         );
       }
@@ -361,7 +365,7 @@ export function createEthereumHTLCClient(config: EthereumConfig): EthereumHTLCCl
 
 export function createPooledEthereumHTLCClient(
   config: EthereumConfig,
-  connectionPool: any
+  connectionPool: ConnectionStrategy<ethers.providers.JsonRpcProvider>
 ): EthereumHTLCClient {
   const { ConnectionStrategyFactory } = require('@evmore/utils');
   const strategy = ConnectionStrategyFactory.createEthereumStrategy('pooled', {

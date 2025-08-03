@@ -56,15 +56,19 @@ export function sanitizeAddress(address: string): string {
 }
 
 export function sanitizeHex(hex: string): string {
-  let cleaned = hex.trim();
+  // Remove whitespace and convert to lowercase
+  let sanitized = hex.trim().toLowerCase();
   
-  // Add 0x prefix if missing
-  if (!cleaned.startsWith('0x')) {
-    cleaned = '0x' + cleaned;
+  // Remove 0x prefix if present
+  if (sanitized.startsWith('0x')) {
+    sanitized = sanitized.slice(2);
   }
   
-  // Convert to lowercase
-  return cleaned.toLowerCase();
+  // Remove control characters and non-hex characters
+  sanitized = sanitized.replace(/[\u0000-\u001f\u007f-\u009f]/g, '');
+  sanitized = sanitized.replace(/[^0-9a-f]/g, '');
+  
+  return sanitized;
 }
 
 export function sanitizeMemo(memo: string): string {
@@ -80,10 +84,10 @@ export function sanitizeMemo(memo: string): string {
 }
 
 // Enhanced validation functions
-export interface ValidationResult {
+export interface ValidationResult<T = unknown> {
   valid: boolean;
   errors: string[];
-  sanitized?: any;
+  sanitized?: T;
 }
 
 export function validateCrossChainSwapParams(

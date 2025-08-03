@@ -1,11 +1,14 @@
-import { SigningStargateClient, StargateClient } from '@cosmjs/stargate';
+import { SigningStargateClient, StargateClient, DeliverTxResponse, IndexedTx } from '@cosmjs/stargate';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
-import { Coin } from '@cosmjs/amino';
-import { HTLCDetails, TransactionReceipt } from '../types';
+import { EncodeObject } from '@cosmjs/proto-signing';
+import { HTLCDetails } from '../types';
 import { validateAmount, isValidHash, isValidCosmosAddress } from '../utils';
 
 // Import centralized configuration interfaces
 import { CosmosNetworkConfig as UnifiedCosmosConfig } from '@evmore/utils';
+
+// Use proper Cosmos types
+type CosmosTransactionResult = DeliverTxResponse | IndexedTx;
 
 export interface CosmosConfig {
   rpcUrl: string;
@@ -391,7 +394,7 @@ export class CosmosHTLCClient {
    * @param txHash - Transaction hash
    * @returns Promise resolving to transaction or null
    */
-  async getTransaction(txHash: string): Promise<any> {
+  async getTransaction(txHash: string): Promise<CosmosTransactionResult | null> {
     if (!this.queryClient) {
       this.queryClient = await StargateClient.connect(this.config.rpcUrl);
     }
@@ -409,7 +412,7 @@ export class CosmosHTLCClient {
    * @param messages - Messages to simulate
    * @returns Promise resolving to gas estimate
    */
-  async simulate(messages: any[]): Promise<number> {
+  async simulate(messages: EncodeObject[]): Promise<number> {
     if (!this.client || !this.wallet) {
       throw new Error('Client not initialized');
     }
@@ -423,9 +426,9 @@ export class CosmosHTLCClient {
    * @param result - Transaction result
    * @returns HTLC ID or null
    */
-  private extractHTLCIdFromResult(result: any): string | null {
+  private extractHTLCIdFromResult(result: CosmosTransactionResult): string | null {
     try {
-      // Look for the HTLC ID in transaction events/logs
+      // Look for the HTLC ID in transaction events
       for (const event of result.events || []) {
         if (event.type === 'wasm') {
           for (const attr of event.attributes || []) {
@@ -436,8 +439,8 @@ export class CosmosHTLCClient {
         }
       }
 
-      // Alternative: look in logs
-      if (result.logs && result.logs.length > 0) {
+      // For IndexedTx, look in logs
+      if ('logs' in result && result.logs && result.logs.length > 0) {
         for (const log of result.logs) {
           for (const event of log.events || []) {
             if (event.type === 'wasm') {

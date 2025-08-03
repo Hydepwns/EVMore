@@ -13,14 +13,14 @@ export interface RequestContext {
   priority: 'high' | 'medium' | 'low';
   retryCount: number;
   timeout?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-interface QueuedRequest {
-  fn: () => Promise<any>;
+interface QueuedRequest<T = unknown> {
+  fn: () => Promise<T>;
   context: RequestContext;
-  resolve: (value: any) => void;
-  reject: (error: any) => void;
+  resolve: (value: T) => void;
+  reject: (error: Error) => void;
   timestamp: number;
 }
 
@@ -28,7 +28,7 @@ export class RequestThrottle {
   private config: ThrottleConfig;
   private logger?: Logger;
   private activeRequests = 0;
-  private queue: QueuedRequest[] = [];
+  private queue: QueuedRequest<unknown>[] = [];
   private recentErrors: Array<{ timestamp: number; type: string }> = [];
   private adaptiveDelay = 0;
   private lastRequestTime = 0;
@@ -60,12 +60,12 @@ export class RequestThrottle {
       ...context
     };
 
-    return new Promise((resolve, reject) => {
-      const queuedRequest: QueuedRequest = {
-        fn: requestFn,
+    return new Promise<T>((resolve, reject) => {
+      const queuedRequest: QueuedRequest<unknown> = {
+        fn: requestFn as () => Promise<unknown>,
         context: fullContext,
-        resolve,
-        reject,
+        resolve: resolve as (value: unknown) => void,
+        reject: reject as (error: Error) => void,
         timestamp: Date.now()
       };
 
@@ -119,7 +119,7 @@ export class RequestThrottle {
       request.resolve(result);
     } catch (error) {
       // Handle error
-      this.handleRequestError(error, request);
+      this.handleRequestError(error as Error, request);
     } finally {
       this.activeRequests--;
       this.lastRequestTime = Date.now();
@@ -156,7 +156,7 @@ export class RequestThrottle {
   /**
    * Handle request errors and adaptive throttling
    */
-  private handleRequestError(error: any, request: QueuedRequest): void {
+  private handleRequestError(error: Error, request: QueuedRequest<unknown>): void {
     this.consecutiveErrors++;
     this.recentErrors.push({
       timestamp: Date.now(),
@@ -203,7 +203,7 @@ export class RequestThrottle {
   /**
    * Determine if a request should be retried
    */
-  private shouldRetry(error: any, context: RequestContext): boolean {
+  private shouldRetry(error: Error, context: RequestContext): boolean {
     // Don't retry if already retried too many times
     if (context.retryCount >= 3) return false;
 
@@ -233,7 +233,7 @@ export class RequestThrottle {
   /**
    * Increase adaptive delay based on error patterns
    */
-  private increaseAdaptiveDelay(error: any): void {
+  private increaseAdaptiveDelay(error: Error): void {
     const errorType = this.getErrorType(error);
     
     // Increase delay more aggressively for rate limiting errors
@@ -260,22 +260,25 @@ export class RequestThrottle {
   }
 
   /**
-   * Classify error type for adaptive handling
+   * Get error type for adaptive throttling
    */
-  private getErrorType(error: any): string {
-    const message = error.message?.toLowerCase() || '';
+  private getErrorType(error: Error): string {
+    const message = error.message.toLowerCase();
     
-    if (message.includes('rate limit') || message.includes('429')) {
+    if (message.includes('rate limit') || message.includes('too many requests')) {
       return 'rate_limit';
-    } else if (message.includes('timeout')) {
-      return 'timeout';
-    } else if (message.includes('connection')) {
-      return 'connection';
-    } else if (message.includes('service unavailable') || message.includes('503')) {
-      return 'service_unavailable';
-    } else {
-      return 'unknown';
     }
+    if (message.includes('timeout') || message.includes('timed out')) {
+      return 'timeout';
+    }
+    if (message.includes('connection') || message.includes('network')) {
+      return 'network';
+    }
+    if (message.includes('server error') || message.includes('service unavailable')) {
+      return 'server_error';
+    }
+    
+    return 'unknown';
   }
 
   /**

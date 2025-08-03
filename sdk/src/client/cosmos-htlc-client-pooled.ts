@@ -5,9 +5,21 @@
 
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { Coin } from '@cosmjs/amino';
+import { EncodeObject } from '@cosmjs/proto-signing';
 import { CosmosQueryConnectionPool, CosmosSigningConnectionPool } from '@evmore/connection-pool';
 import { HTLCDetails, PooledTransactionResult, CosmWasmSigningClient } from '../types';
 import { validateAmount, isValidHash, isValidCosmosAddress } from '../utils';
+
+// Define proper types for transaction results
+interface CosmosTransactionResult {
+  events?: Array<{
+    type: string;
+    attributes?: Array<{
+      key: string;
+      value: string;
+    }>;
+  }>;
+}
 
 export interface CosmosConfig {
   chainId: string;
@@ -410,52 +422,35 @@ export class PooledCosmosHTLCClient {
   }
 
   /**
-   * Estimate gas for a transaction
+   * Estimate gas for transaction
    */
-  private async estimateGas(client: any, sender: string, msg: any): Promise<number> {
+  private async estimateGas(client: CosmWasmSigningClient, sender: string, msg: EncodeObject): Promise<number> {
     try {
-      // Try to simulate the transaction
-      const gasEstimate = await client.simulate(
-        sender,
-        [{
-          contractAddress: this.config.htlcContract,
-          msg: msg
-        }],
-        ''
-      );
-      
-      return gasEstimate || 200000; // Default gas if simulation fails
-    } catch {
-      // Return default gas estimate if simulation fails
-      return 200000;
+      const gasEstimate = await client.simulate(sender, [msg], '');
+      return Math.floor(gasEstimate * this.options.gasMultiplier);
+    } catch (error) {
+      // Fallback to default gas limit
+      return this.config.gasLimit || 200000;
     }
   }
 
   /**
    * Extract HTLC ID from transaction result
    */
-  private extractHTLCIdFromResult(result: any): string | null {
+  private extractHTLCIdFromResult(result: CosmosTransactionResult): string | null {
     try {
-      // Look for wasm events
+      // Look for the HTLC ID in transaction events
       for (const event of result.events || []) {
-        if (event.type === 'wasm' || event.type === 'execute') {
+        if (event.type === 'wasm') {
           for (const attr of event.attributes || []) {
-            const key = Buffer.from(attr.key, 'base64').toString();
-            if (key === 'htlc_id' || key === 'id') {
-              return Buffer.from(attr.value, 'base64').toString();
+            if (attr.key === 'htlc_id') {
+              return attr.value;
             }
           }
         }
       }
-
-      // Try to parse from raw log
-      const match = result.rawLog?.match(/htlc_id["\s:]+([a-fA-F0-9]{64})/);
-      if (match) {
-        return match[1];
-      }
-
       return null;
-    } catch {
+    } catch (error) {
       return null;
     }
   }

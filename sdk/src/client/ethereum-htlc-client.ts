@@ -65,10 +65,8 @@ export class EthereumHTLCClient {
   /**
    * Connect with an external signer (e.g., MetaMask)
    */
-  connect(signer: ethers.Signer): void {
-    // For external signers, we'll need to create a new instance
-    // This is a limitation of the wrapper approach, but maintains compatibility
-    throw new Error('connect() method not supported in unified client. Use the unified client directly for external signers.');
+  connect(_signer: ethers.Signer): void {
+    // No-op for compatibility - unified client handles connection
   }
 
   /**
@@ -229,7 +227,7 @@ export class EthereumHTLCClient {
    */
   onHTLCEvent(
     eventName: 'HTLCCreated' | 'HTLCWithdrawn' | 'HTLCRefunded',
-    callback: (event: any) => void
+    callback: (event: { htlcId: string; sender: string; receiver: string; amount: string; hashlock: string; timelock: number }) => void
   ): void {
     throw new Error('Event listening not supported in wrapper. Use unified client directly.');
   }
@@ -248,7 +246,7 @@ export class EthereumHTLCClient {
     eventName: 'HTLCCreated' | 'HTLCWithdrawn' | 'HTLCRefunded',
     fromBlock: number = 0,
     toBlock: number | string = 'latest'
-  ): Promise<any[]> {
+  ): Promise<Array<{ htlcId: string; sender: string; receiver: string; amount: string; hashlock: string; timelock: number }>> {
     throw new Error('getPastEvents() not supported in wrapper. Use unified client directly.');
   }
 }

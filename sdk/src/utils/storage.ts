@@ -8,13 +8,19 @@ interface Storage {
   removeItem(key: string): void;
 }
 
+interface LocalStorageAPI {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
 /**
  * Browser localStorage implementation
  */
 class BrowserStorage implements Storage {
-  private localStorage: any;
+  private localStorage: LocalStorageAPI;
 
-  constructor(localStorage: any) {
+  constructor(localStorage: LocalStorageAPI) {
     this.localStorage = localStorage;
   }
 
@@ -56,9 +62,9 @@ class MemoryStorage implements Storage {
 function getStorage(): Storage {
   // Check if we're in a browser environment with localStorage
   if (typeof globalThis !== 'undefined' && 
-      (globalThis as any).localStorage && 
-      typeof (globalThis as any).localStorage.getItem === 'function') {
-    return new BrowserStorage((globalThis as any).localStorage);
+      (globalThis as { localStorage?: LocalStorageAPI }).localStorage && 
+      typeof (globalThis as { localStorage?: LocalStorageAPI }).localStorage?.getItem === 'function') {
+    return new BrowserStorage((globalThis as { localStorage: LocalStorageAPI }).localStorage);
   }
   
   // Fallback to in-memory storage for Node.js or other environments
@@ -73,6 +79,6 @@ export const storage = getStorage();
  */
 export function hasLocalStorage(): boolean {
   return typeof globalThis !== 'undefined' && 
-         (globalThis as any).localStorage && 
-         typeof (globalThis as any).localStorage.getItem === 'function';
+         (globalThis as { localStorage?: LocalStorageAPI }).localStorage && 
+         typeof (globalThis as { localStorage?: LocalStorageAPI }).localStorage?.getItem === 'function';
 }

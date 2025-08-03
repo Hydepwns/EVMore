@@ -1,7 +1,7 @@
 {
-  "name": "@1inch-fusion-cosmos/sdk",
+  "name": "@evmore/sdk",
   "version": "0.1.0",
-  "description": "TypeScript SDK for 1inch Fusion+ Cosmos Extension",
+  "description": "TypeScript SDK for EVMore protocol",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",

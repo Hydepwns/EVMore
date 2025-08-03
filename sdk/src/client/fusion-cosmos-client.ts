@@ -17,7 +17,8 @@ import {
   LegacySwapStatus,
   ChainConfig,
   ChainType,
-  TokenInfo
+  TokenInfo,
+  SwapRoute
 } from '../types';
 import {
   generateSecretPair,
@@ -592,7 +593,7 @@ export class FusionCosmosClient {
     targetToken: string,
     maxHops?: number
   ): Promise<{
-    routes: any[];
+    routes: SwapRoute[];
     estimatedOutput: string;
     priceImpact: string;
     totalFees: string;
@@ -621,7 +622,7 @@ export class FusionCosmosClient {
    */
   async monitorArbitrage(
     tokenPairs: Array<{ tokenA: string; tokenB: string }>,
-    callback: (opportunity: any) => void
+    callback: (opportunity: { tokenA: string; tokenB: string; priceDifference: number; profitEstimate: string }) => void
   ): Promise<() => void> {
     if (!this.dexClient) {
       throw new Error('DEX client not configured');

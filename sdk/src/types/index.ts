@@ -42,7 +42,7 @@ export interface HTLCOrder {
   timelock: number;
   status: string;
   createdAt: number | Date;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Legacy swap status for migration

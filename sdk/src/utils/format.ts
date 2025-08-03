@@ -309,14 +309,17 @@ export function truncateText(
   }
 
   switch (position) {
-    case 'start':
+    case 'start': {
       return '...' + text.slice(-(maxLength - 3));
-    case 'middle':
+    }
+    case 'middle': {
       const start = Math.ceil((maxLength - 3) / 2);
       const end = Math.floor((maxLength - 3) / 2);
       return text.slice(0, start) + '...' + text.slice(-end);
+    }
     case 'end':
-    default:
+    default: {
       return text.slice(0, maxLength - 3) + '...';
+    }
   }
 }
