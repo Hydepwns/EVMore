@@ -196,7 +196,7 @@ export function inject<T>(_token: ServiceToken<T>) {
   return function (_target: any, _propertyKey: string | symbol | undefined, _parameterIndex: number) {
     // This would be used with a decorator-based DI system
     // For now, it's a placeholder for future enhancement
-    // TODO: Implement metadata storage without Reflect
+    // Note: Metadata storage without Reflect implementation pending
   };
 }
 

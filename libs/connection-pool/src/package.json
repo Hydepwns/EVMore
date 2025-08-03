@@ -48,11 +48,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/1inch/fusion-cosmos-extension.git",
+    "url": "https://github.com/hydepwns/evmore.git",
     "directory": "shared/connection-pool"
   },
   "bugs": {
-    "url": "https://github.com/1inch/fusion-cosmos-extension/issues"
+    "url": "https://github.com/hydepwns/evmore/issues"
   },
-  "homepage": "https://github.com/1inch/fusion-cosmos-extension/tree/main/shared/connection-pool#readme"
+      "homepage": "https://github.com/hydepwns/evmore/tree/main/libs/connection-pool#readme"
 }

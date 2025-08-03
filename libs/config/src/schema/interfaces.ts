@@ -114,6 +114,24 @@ export interface SecurityConfig {
   encryption: EncryptionConfig;
   rateLimit: RateLimitConfig;
   firewall: FirewallConfig;
+  ddosProtection?: DDoSProtectionConfig;
+}
+
+export interface DDoSProtectionConfig {
+  enabled: boolean;
+  baseRateLimit: number;
+  maxRateLimit: number;
+  rateMultiplier: number;
+  adaptationSpeed: number;
+  volumeThreshold: number;
+  burstThreshold: number;
+  patternThreshold: number;
+  warningLevel: number;
+  blockLevel: number;
+  emergencyLevel: number;
+  analysisWindow: number;
+  blacklistDuration: number;
+  adaptationWindow: number;
 }
 
 export interface SecretsConfig {

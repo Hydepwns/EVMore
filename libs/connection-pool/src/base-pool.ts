@@ -115,14 +115,7 @@ export abstract class BaseConnectionPool<T> extends EventEmitter {
     // Check circuit breaker
     const breaker = this.circuitBreakers.get(endpoint.url);
     if (breaker?.isOpen) {
-      // Check if circuit breaker should be reset
-      if (Date.now() - breaker.openedAt > this.config.circuitBreakerTimeout) {
-        breaker.isOpen = false;
-        breaker.errorCount = 0;
-        this.logger.info({ endpoint: endpoint.url }, 'Circuit breaker reset');
-      } else {
-        throw new CircuitBreakerError(this.config.name, endpoint.url);
-      }
+      throw new CircuitBreakerError(this.config.name, endpoint.url);
     }
 
     const connections = this.connections.get(endpoint.url) || [];
@@ -132,18 +125,20 @@ export abstract class BaseConnectionPool<T> extends EventEmitter {
     
     if (!connection) {
       // Create new connection if under limit
-      if (connections.length < (endpoint.maxConnections ?? this.config.maxConnections)) {
-        connection = await this.createConnection(endpoint);
-        connections.push(connection);
-        this.connections.set(endpoint.url, connections);
-      } else {
-        // Wait for a connection to become available or timeout
-        connection = await this.waitForConnection(endpoint.url);
+      const maxConnections = endpoint.maxConnections ?? this.config.maxConnections;
+      if (connections.length >= maxConnections) {
+        // Only try alternative endpoints if this endpoint is truly at max capacity
+        // and we have other healthy endpoints available with capacity
+        const alternativeEndpoint = this.selectAlternativeEndpointWithCapacity(endpoint.url);
+        if (alternativeEndpoint) {
+          return this.getConnectionFromEndpoint(alternativeEndpoint);
+        }
+        // Throw error when max connections reached and no alternatives
+        throw new PoolError(`Max connections reached for ${endpoint.url}`, this.config.name, endpoint.url);
       }
-    }
-
-    if (!connection) {
-      throw new PoolError(`No connection available for ${endpoint.url}`, this.config.name, endpoint.url);
+      connection = await this.createConnection(endpoint);
+      connections.push(connection);
+      this.connections.set(endpoint.url, connections);
     }
 
     // Mark as in use
@@ -156,12 +151,17 @@ export abstract class BaseConnectionPool<T> extends EventEmitter {
 
   releaseConnection(connection: PoolConnection<T>): void {
     connection.inUse = false;
-    connection.lastUsed = Date.now();
+    const now = Date.now();
+    const latency = now - connection.lastUsed;
+    
+    // Record latency for this request
+    this.stats.totalLatency += latency;
+    
     this.emit('connectionReleased', {
       type: 'connection_released',
       pool: this.config.name,
       endpoint: connection.endpoint,
-      timestamp: Date.now()
+      timestamp: now
     } as PoolEvent);
   }
 
@@ -210,22 +210,72 @@ export abstract class BaseConnectionPool<T> extends EventEmitter {
       return null;
     }
 
-    // Weighted selection based on endpoint weights and current load
-    const weighted = healthyEndpoints.map(endpoint => {
-      const connections = this.connections.get(endpoint.url) || [];
-      const activeCount = connections.filter(c => c.inUse).length;
-      const weight = endpoint.weight || 1;
+    // Simple weighted round-robin selection
+    // Calculate total weight and use modulo to distribute requests
+    const totalWeight = healthyEndpoints.reduce((sum, endpoint) => sum + (endpoint.weight || 1), 0);
+    const requestCount = this.stats.requestsServed;
+    const selectedIndex = requestCount % totalWeight;
+    
+    let currentWeight = 0;
+    for (const endpoint of healthyEndpoints) {
+      currentWeight += endpoint.weight || 1;
+      if (selectedIndex < currentWeight) {
+        return endpoint;
+      }
+    }
+    
+    // Fallback to first endpoint
+    return healthyEndpoints[0];
+  }
+
+
+
+  private selectAlternativeEndpointWithCapacity(excludeUrl: string): RpcEndpoint | null {
+    const healthyEndpoints = this.config.endpoints.filter(endpoint => {
+      if (endpoint.url === excludeUrl) return false;
       const health = this.endpointHealth.get(endpoint.url);
+      const breaker = this.circuitBreakers.get(endpoint.url);
+      if (!health?.isHealthy || breaker?.isOpen) return false;
       
-      // Lower score is better (less load, better latency, higher weight)
-      const score = (activeCount + 1) / weight + (health?.latency || 0) / 1000;
-      
-      return { endpoint, score };
+      // Check if this endpoint has capacity
+      const connections = this.connections.get(endpoint.url) || [];
+      const maxConnections = endpoint.maxConnections ?? this.config.maxConnections;
+      return connections.length < maxConnections;
     });
 
-    // Select endpoint with lowest score
-    weighted.sort((a, b) => a.score - b.score);
-    return weighted[0].endpoint;
+    if (healthyEndpoints.length === 0) {
+      return null;
+    }
+
+    // Simple round-robin for alternative selection
+    const requestCount = this.stats.requestsServed;
+    const selectedIndex = requestCount % healthyEndpoints.length;
+    return healthyEndpoints[selectedIndex];
+  }
+
+  private async getConnectionFromEndpoint(endpoint: RpcEndpoint): Promise<PoolConnection<T>> {
+    const connections = this.connections.get(endpoint.url) || [];
+    
+    // Try to find an idle connection
+    let connection = connections.find(conn => !conn.inUse && conn.isHealthy);
+    
+    if (!connection) {
+      // Create new connection if under limit
+      const maxConnections = endpoint.maxConnections ?? this.config.maxConnections;
+      if (connections.length >= maxConnections) {
+        throw new PoolError(`Max connections reached for ${endpoint.url}`, this.config.name, endpoint.url);
+      }
+      connection = await this.createConnection(endpoint);
+      connections.push(connection);
+      this.connections.set(endpoint.url, connections);
+    }
+
+    // Mark as in use
+    connection.inUse = true;
+    connection.lastUsed = Date.now();
+    this.stats.requestsServed++;
+
+    return connection;
   }
 
   private async prewarmConnections(): Promise<void> {
@@ -345,25 +395,7 @@ export abstract class BaseConnectionPool<T> extends EventEmitter {
     }
   }
 
-  private async waitForConnection(endpointUrl: string): Promise<PoolConnection<T> | undefined> {
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => resolve(undefined), this.config.connectionTimeout);
-      
-      const checkForConnection = () => {
-        const connections = this.connections.get(endpointUrl) || [];
-        const available = connections.find(conn => !conn.inUse && conn.isHealthy);
-        
-        if (available) {
-          clearTimeout(timeout);
-          resolve(available);
-        } else {
-          setTimeout(checkForConnection, 50);
-        }
-      };
-      
-      checkForConnection();
-    });
-  }
+
 
   private async cleanupIdleConnections(): Promise<void> {
     const now = Date.now();
