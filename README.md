@@ -1,10 +1,10 @@
-# 1inch Fusion+ Cosmos Extension
+# EVMore - Cross-Chain Atomic Swap Protocol
 
 A cross-chain atomic swap protocol enabling seamless asset transfers between Ethereum and the Cosmos ecosystem, with multi-hop IBC routing capabilities.
 
-## 🎯 Project Overview
+## Project Overview
 
-This project extends the 1inch Fusion+ protocol to support cross-chain swaps between Ethereum (EVM) and Cosmos-based chains. It leverages HTLCs (Hash Time Lock Contracts), IBC (Inter-Blockchain Communication), and integrates with Osmosis DEX for optimal liquidity routing.
+This project implements a cross-chain atomic swap protocol that supports swaps between Ethereum (EVM) and Cosmos-based chains. It leverages HTLCs (Hash Time Lock Contracts), IBC (Inter-Blockchain Communication), and integrates with Osmosis DEX for optimal liquidity routing.
 
 ### Key Features
 
@@ -15,14 +15,14 @@ This project extends the 1inch Fusion+ protocol to support cross-chain swaps bet
 - **MEV Protection**: Commit-reveal scheme and threshold encryption
 - **Automatic Recovery**: Timeout handling and refund mechanisms
 
-### 🎉 Stretch Goals Completed
+### Stretch Goals Completed
 
-- **Frontend UI** ✅: Modern React interface with Tailwind CSS for intuitive cross-chain swaps
-- **Partial Fills** ✅: Advanced order splitting functionality with percentage-based execution
+- **Frontend UI**: Modern React interface with Tailwind CSS for intuitive cross-chain swaps
+- **Partial Fills**: Advanced order splitting functionality with percentage-based execution
 
-See [STRETCH_GOALS_SUMMARY.md](STRETCH_GOALS_SUMMARY.md) for details.
+See [STRETCH_GOALS_SUMMARY.md](docs/hackathon/STRETCH_GOALS_SUMMARY.md) for details.
 
-## 📁 Project Structure
+## Project Structure
 
 ```bash
 EVMore/
@@ -40,44 +40,14 @@ EVMore/
 │   └── cosmwasm/              # CosmWasm contracts
 │
 ├── relayer/                    # Cross-chain relayer
-│   ├── src/
-│   │   ├── monitor/           # Event monitoring
-│   │   ├── relay/             # Packet relay logic
-│   │   └── container/         # DI service container
-│   └── package.json
-│
 ├── sdk/                        # TypeScript SDK
-│   ├── src/
-│   │   ├── client/            # Client interfaces
-│   │   ├── migration/         # Backward compatibility
-│   │   └── utils/             # Domain utilities
-│   └── package.json
-│
-├── frontend/                   # React web interface (Stretch Goal ✅)
-│   ├── src/
-│   │   ├── components/        # UI components
-│   │   ├── pages/            # Route pages
-│   │   └── services/         # API integration
-│   └── package.json
-│
+├── frontend/                   # React web interface
 ├── tests/                      # Comprehensive test suites
-│   ├── integration/           # Architecture validation
-│   ├── performance/           # Benchmarking
-│   └── migration/             # Compatibility tests
-│
-├── scripts/                     # Deployment & setup
-│   ├── deploy/                 # Deployment scripts
-│   ├── setup-ibc/             # IBC channel setup
-│   └── local-dev/             # Local development
-│
-└── docs/                        # Documentation
-    ├── implementation.md       # Technical implementation
-    ├── dexintegration.md      # DEX integration guide
-    ├── multihop-ibc-design.md # Multi-hop architecture
-    └── ...                    # Other docs
+├── scripts/                    # Deployment & setup
+└── docs/                       # Documentation
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -90,8 +60,8 @@ EVMore/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/1inch-fusion-cosmos
-cd 1inch-fusion-cosmos
+git clone https://github.com/hydepwns/evmore
+cd evmore
 
 # Install dependencies
 npm install
@@ -115,38 +85,42 @@ npm run deploy:local
 # Run relayer in development mode
 npm run dev:relayer
 
-# Start frontend (Stretch Goal)
+# Start frontend
 cd frontend && npm run dev
 # Open http://localhost:5173
 ```
 
-## ⚡ Features
+## Features
 
 ### Core Infrastructure
+
 - Atomic cross-chain swaps between Ethereum and Cosmos
 - Multi-hop IBC routing for optimal paths
 - Hash Time Lock Contracts (HTLCs) on both chains
 - Automated relayer service
 
 ### IBC Integration
+
 - Native IBC packet handling
 - Packet Forward Middleware support
 - Multi-hop transfer logic with timelock cascades
 - Comprehensive integration testing
 
 ### DEX Integration
+
 - Osmosis pool integration for liquidity
 - Dynamic price discovery
 - Slippage protection mechanisms
 - Multi-DEX aggregation
 
 ### Production Features
+
 - Enterprise-grade TypeScript libraries
 - Comprehensive test coverage (99.14% pass rate)
 - Performance optimized bundles
 - Security audited contracts
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ### High-Level Flow
 
@@ -177,9 +151,10 @@ cd frontend && npm run dev
 - **No Trust Required**: Cryptographic proofs only
 - **MEV Resistant**: Commit-reveal and encryption
 
-## 📊 Supported Chains
+## Supported Chains
 
 ### Currently Planned
+
 - **Ethereum** (Mainnet, Sepolia)
 - **Osmosis** (Primary DEX hub)
 - **Cosmos Hub** (ATOM native chain)
@@ -187,11 +162,12 @@ cd frontend && npm run dev
 - **Secret Network** (Privacy features)
 
 ### Future Expansion
+
 - Any IBC-enabled Cosmos chain
 - Additional EVM chains (Polygon, BSC, etc.)
 - Non-EVM chains via adapters
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Smart Contracts**: Solidity (EVM), Rust/CosmWasm (Cosmos)
 - **Relayer**: TypeScript, Node.js
@@ -199,42 +175,35 @@ cd frontend && npm run dev
 - **Testing**: Hardhat, Jest, CosmWasm Test Tube
 - **Infrastructure**: Docker, Kubernetes
 
-## 📚 Documentation
+## Documentation
 
-- [Implementation Details](docs/implementation.md)
-- [DEX Integration Guide](docs/dexintegration.md)
-- [Multi-Hop IBC Design](docs/multihop-ibc-design.md)
-- [Chain Registry Integration](docs/chain-registry-integration.md)
-- [Packet Relay Mechanism](docs/packet-relay-design.md)
+- [Development Guide](docs/DEVELOPMENT_GUIDE.md)
+- [Protocol Design](docs/PROTOCOL_DESIGN.md)
+- [Operations Guide](docs/OPERATIONS_GUIDE.md)
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### Development Process
+
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit changes (`git commit -m 'Add amazing feature'`)
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Resources
+## Resources
 
 - [1inch Limit Order Protocol](https://docs.1inch.io/docs/limit-order-protocol/introduction)
 - [Cosmos SDK Documentation](https://docs.cosmos.network/)
 - [CosmWasm Documentation](https://docs.cosmwasm.com/)
 - [IBC Protocol Specification](https://github.com/cosmos/ibc)
 
-## 📞 Contact
-
-- Discord: [Join our server](#)
-- Twitter: [@1inchFusionCosmos](#)
-- Email: fusion-cosmos@1inch.io
-
 ---
 
-**⚠️ Status**: This project is under active development. Use at your own risk on mainnet.
+**Status**: This project is under active development. Use at your own risk on mainnet.

@@ -1,16 +1,18 @@
-# 1inch Fusion+ Cosmos Frontend
+# EVMore Frontend
 
-A modern, responsive web interface for the 1inch Fusion+ Cosmos Extension, enabling seamless cross-chain swaps between Ethereum and Cosmos ecosystems.
+A modern, responsive web interface for the EVMore cross-chain atomic swap protocol, enabling seamless cross-chain swaps between Ethereum and Cosmos ecosystems.
 
 ## 🚀 Features
 
 ### Core Functionality
+
 - **Cross-Chain Swaps**: Intuitive interface for Ethereum ↔ Cosmos swaps
 - **Multi-Wallet Support**: Integrated MetaMask and Keplr wallet connections
 - **Real-Time Updates**: Live transaction status monitoring
 - **Transaction History**: Comprehensive swap history with filtering
 
 ### Stretch Goals Implemented
+
 - **Beautiful UI**: Modern React interface with Tailwind CSS
 - **Partial Fills**: Advanced order splitting functionality
 - **Responsive Design**: Works seamlessly on desktop and mobile
@@ -32,8 +34,8 @@ A modern, responsive web interface for the 1inch Fusion+ Cosmos Extension, enabl
 
 ```bash
 # Clone the repository
-git clone <repo-url>
-cd frontend
+git clone https://github.com/hydepwns/evmore
+cd evmore/frontend
 
 # Install dependencies
 npm install
@@ -55,26 +57,29 @@ VITE_COSMOS_RPC_URL=https://rpc.testnet.cosmos.network
 ## 🏃‍♂️ Running the Application
 
 ### Development Mode
+
 ```bash
 npm run dev
 # Available at http://localhost:5173
 ```
 
 ### Production Build
+
 ```bash
 npm run build
 npm run preview
 ```
 
 ### Run Tests
+
 ```bash
 npm run test
 ```
 
 ## 📁 Project Structure
 
-```
-frontend/
+```bash
+evmore/frontend/
 ├── src/
 │   ├── components/       # Reusable UI components
 │   │   ├── SwapInterface/   # Main swap form
@@ -92,7 +97,9 @@ frontend/
 ## 🎨 Key Components
 
 ### SwapInterface
+
 Main component for executing swaps:
+
 - Chain selection
 - Token selection
 - Amount input with validation
@@ -100,14 +107,18 @@ Main component for executing swaps:
 - Swap execution
 
 ### WalletConnect
+
 Multi-wallet management:
+
 - MetaMask connection for Ethereum
 - Keplr connection for Cosmos
 - Address display and copying
 - Disconnect functionality
 
 ### TransactionHistory
+
 Swap history tracking:
+
 - Real-time status updates
 - Transaction details
 - Explorer links
@@ -115,12 +126,12 @@ Swap history tracking:
 
 ## 🔌 SDK Integration
 
-The frontend integrates with the `@1inch/fusion-cosmos-sdk` for swap execution:
+The frontend integrates with the `@evmore/sdk` for swap execution:
 
 ```typescript
-import { FusionCosmosClient } from '@1inch/fusion-cosmos-sdk';
+import { EvmoreClient } from '@evmore/sdk';
 
-const client = new FusionCosmosClient({
+const client = new EvmoreClient({
   relayerUrl: 'http://localhost:3000'
 });
 ```
@@ -128,6 +139,7 @@ const client = new FusionCosmosClient({
 ## 🎯 Usage Guide
 
 ### Basic Swap
+
 1. Connect both Ethereum and Cosmos wallets
 2. Select source chain and token
 3. Enter swap amount
@@ -135,12 +147,14 @@ const client = new FusionCosmosClient({
 5. Click "Swap" to execute
 
 ### Partial Fills
+
 1. Enable "Partial Fills" toggle
 2. Adjust fill percentage (10-90%)
 3. Execute partial swap
 4. Monitor remaining balance
 
 ### Transaction Monitoring
+
 - View real-time status in swap interface
 - Check complete history in History tab
 - Click transaction hashes for explorer details
@@ -148,16 +162,19 @@ const client = new FusionCosmosClient({
 ## 🐛 Troubleshooting
 
 ### Wallet Connection Issues
+
 - Ensure MetaMask/Keplr extensions are installed
 - Check you're on correct networks (Sepolia/Cosmos Testnet)
 - Try refreshing the page
 
 ### Build Errors
+
 - Clear node_modules and reinstall: `rm -rf node_modules && npm install`
 - Check Node.js version (18+ recommended)
 - Verify all environment variables are set
 
 ### Transaction Failures
+
 - Ensure sufficient gas funds
 - Check token balances
 - Verify relayer service is running
@@ -165,18 +182,21 @@ const client = new FusionCosmosClient({
 ## 🚀 Deployment
 
 ### Vercel
+
 ```bash
 npm run build
 vercel --prod
 ```
 
 ### Netlify
+
 ```bash
 npm run build
 netlify deploy --prod --dir=dist
 ```
 
 ### Docker
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -205,8 +225,4 @@ CMD ["npm", "run", "preview"]
 
 ## 📄 License
 
-This project is part of the 1inch Fusion+ Cosmos Extension hackathon submission.
-
----
-
-Built with ❤️ for the 1inch Hackathon
+This project is part of the EVMore cross-chain atomic swap protocol.

@@ -1,4 +1,4 @@
-# Testing Framework for 1inch Fusion+ Cosmos Extension
+# Testing Framework for EVMore Protocol
 
 ## Overview
 
@@ -20,11 +20,13 @@ tests/
 ## Running Tests
 
 ### All Tests
+
 ```bash
 npm test
 ```
 
 ### Specific Test Types
+
 ```bash
 # Unit tests only
 npm run test:unit
@@ -42,6 +44,7 @@ npm run test:coverage
 ## Test Environment Setup
 
 ### Local Development
+
 ```bash
 # Start local blockchain environment
 docker-compose up -d
@@ -82,6 +85,7 @@ OSMOSIS_HTLC_ADDRESS=osmo1...
 ### 1. Unit Tests
 
 Isolated component testing:
+
 - Smart contract functions
 - Utility functions
 - Individual module behavior
@@ -89,6 +93,7 @@ Isolated component testing:
 ### 2. Integration Tests
 
 Multi-component interaction:
+
 - HTLC flow between chains
 - Relayer functionality
 - Route discovery
@@ -97,6 +102,7 @@ Multi-component interaction:
 ### 3. End-to-End Tests
 
 Complete user scenarios:
+
 - Full atomic swap flows
 - Multi-hop transfers
 - Timeout and refund scenarios
@@ -251,7 +257,7 @@ The framework includes performance benchmarks:
 Enable detailed logging:
 
 ```bash
-DEBUG=fusion:* npm test
+DEBUG=evmore:* npm test
 ```
 
 ## CI/CD Integration

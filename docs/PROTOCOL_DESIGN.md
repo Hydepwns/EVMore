@@ -3,20 +3,23 @@
 ## Cross-Chain Architecture
 
 ### Overview
+
 EVMore implements atomic cross-chain swaps between Ethereum and Cosmos chains using Hash Time Lock Contracts (HTLCs), Inter-Blockchain Communication (IBC), and multi-hop routing for optimal liquidity access.
 
 ### Core Components
+
 ```
 ┌─ Ethereum HTLC ─┐    ┌─ IBC Relayer ─┐    ┌─ Cosmos Chains ─┐
 │  Lock Funds     │◄──►│  Monitor      │◄──►│  Execute Swap   │
 │  Time Lock      │    │  Relay        │    │  Route Forward  │
 │  Secret Hash    │    │  Route Disco  │    │  DEX Trading    │
-└─────────────────┘    └───────────────┘    └─────────────────┘
+└─────────────────┘     └───────────────┘    └─────────────────┘
 ```
 
 ## Multi-Hop IBC Routing
 
 ### Route Discovery
+
 ```typescript
 interface SwapRoute {
   hops: Array<{
@@ -50,6 +53,7 @@ class RouteDiscovery {
 ```
 
 ### Packet Forward Middleware
+
 ```typescript
 interface PacketForwardMetadata {
   receiver: string;
@@ -78,6 +82,7 @@ const forwardMemo = {
 ```
 
 ### Timelock Cascade
+
 ```typescript
 class TimelockManager {
   calculateTimelocks(hops: number): number[] {
@@ -101,6 +106,7 @@ class TimelockManager {
 ## IBC Packet Handling
 
 ### Packet Structure
+
 ```typescript
 interface IBCPacket {
   sequence: number;
@@ -126,6 +132,7 @@ interface SwapPacketData {
 ```
 
 ### Acknowledgment Handling
+
 ```typescript
 class AcknowledgmentHandler {
   async handleAcknowledgment(
@@ -161,6 +168,7 @@ class AcknowledgmentHandler {
 ```
 
 ### Timeout Recovery
+
 ```typescript
 class TimeoutRecovery {
   async handleTimeout(packet: IBCPacket): Promise<void> {
@@ -182,6 +190,7 @@ class TimeoutRecovery {
 ## DEX Integration
 
 ### Osmosis Integration
+
 ```typescript
 class OsmosisClient {
   async executeSwap(params: SwapParams): Promise<SwapResult> {
@@ -235,6 +244,7 @@ class OsmosisClient {
 ```
 
 ### AMM Integration
+
 ```typescript
 interface AMMPool {
   id: string;
@@ -273,6 +283,7 @@ class AMMCalculator {
 ## Chain Registry Integration
 
 ### Dynamic Discovery
+
 ```typescript
 class ChainRegistryClient {
   async getChainInfo(chainId: string): Promise<ChainInfo> {
@@ -335,6 +346,7 @@ class ChainRegistryClient {
 ```
 
 ### Route Optimization
+
 ```typescript
 class RouteOptimizer {
   async optimizeRoute(
@@ -380,6 +392,7 @@ class RouteOptimizer {
 ## Security & MEV Protection
 
 ### Commit-Reveal Scheme
+
 ```typescript
 class SecretManager {
   generateCommitment(): { secret: string; commitment: string } {
@@ -404,6 +417,7 @@ class SecretManager {
 ```
 
 ### MEV Protection
+
 ```typescript
 class MEVProtection {
   async submitWithPrivateMempool(
