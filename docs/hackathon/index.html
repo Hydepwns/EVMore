@@ -283,7 +283,7 @@
                 </div>
             </div>
             <div class="architecture-diagram">
-                <img src="architecture-diagram.svg" alt="EVMore Architecture Diagram" class="arch-image">
+                <img src="./architecture-diagram.svg" alt="EVMore Architecture Diagram" class="arch-image" onerror="this.style.display='none'; console.log('SVG failed to load');">
             </div>
         </div>
     </section>
@@ -293,28 +293,28 @@
         <div class="container">
             <h2 class="section-title">Documentation</h2>
             <div class="docs-grid">
-                <a href="#" class="doc-card">
+                <a href="../DEVELOPMENT_GUIDE.md" class="doc-card">
                     <div class="doc-icon">
                         <i class="fas fa-rocket"></i>
                     </div>
                     <h3>Quick Start</h3>
                     <p>Get up and running in 5 minutes</p>
                 </a>
-                <a href="#" class="doc-card">
+                <a href="../api-reference.html" class="doc-card">
                     <div class="doc-icon">
                         <i class="fas fa-code"></i>
                     </div>
                     <h3>API Reference</h3>
                     <p>Complete API documentation</p>
                 </a>
-                <a href="#" class="doc-card">
+                <a href="../OPERATIONS_GUIDE.md" class="doc-card">
                     <div class="doc-icon">
                         <i class="fas fa-book"></i>
                     </div>
                     <h3>Guides</h3>
                     <p>Step-by-step tutorials</p>
                 </a>
-                <a href="#" class="doc-card">
+                <a href="../examples.html" class="doc-card">
                     <div class="doc-icon">
                         <i class="fas fa-tools"></i>
                     </div>
@@ -341,7 +341,7 @@
                     <ul>
                         <li><a href="#features">Features</a></li>
                         <li><a href="#demo">Demo</a></li>
-                        <li><a href="#docs">Documentation</a></li>
+                        <li><a href="../index.html">Documentation</a></li>
                         <li><a href="https://github.com/Hydepwns/EVMore">GitHub</a></li>
                     </ul>
                 </div>
@@ -361,5 +361,38 @@
     </footer>
 
     <script src="script.js"></script>
+    <script>
+// Debug SVG loading
+document.addEventListener('DOMContentLoaded', function() {
+    const archImage = document.querySelector('.arch-image');
+    if (archImage) {
+        archImage.addEventListener('load', function() {
+            console.log('Architecture diagram loaded successfully');
+        });
+        archImage.addEventListener('error', function() {
+            console.error('Failed to load architecture diagram');
+            // Create a fallback
+            const fallback = document.createElement('div');
+            fallback.innerHTML = `
+                <div style="padding: 2rem; background: #f3f4f6; border-radius: 0.75rem; text-align: center;">
+                    <h3>EVMore Architecture</h3>
+                    <p>Cross-chain HTLC protocol connecting Ethereum and Cosmos networks</p>
+                    <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="width: 100px; height: 60px; background: linear-gradient(135deg, #627eea, #4f46e5); border-radius: 8px; margin: 0 auto;"></div>
+                            <p>Ethereum</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="width: 100px; height: 60px; background: linear-gradient(135deg, #2e3148, #1a1b2e); border-radius: 8px; margin: 0 auto;"></div>
+                            <p>Cosmos</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            archImage.parentNode.replaceChild(fallback, archImage);
+        });
+    }
+});
+</script>
 </body>
 </html> 
