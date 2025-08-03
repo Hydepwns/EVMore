@@ -1,45 +1,7 @@
 version: '3.8'
 
 services:
-  # PostgreSQL database for persistence
-  postgres:
-    image: postgres:15-alpine
-    container_name: fusion-relayer-postgres
-    environment:
-      POSTGRES_DB: fusion_relayer
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/setup-database.sql:/docker-entrypoint-initdb.d/01-init.sql
-    networks:
-      - fusion-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d fusion_relayer"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis for caching and session storage
-  redis:
-    image: redis:7-alpine
-    container_name: fusion-relayer-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    networks:
-      - fusion-network
-    command: redis-server /usr/local/etc/redis/redis.conf
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # PostgreSQL and Redis services are defined in docker-compose.base.yml
 
   # Prometheus monitoring
   prometheus:
