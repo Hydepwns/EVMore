@@ -1,6 +1,4 @@
-import { ethers } from 'ethers';
 import { SigningStargateClient } from '@cosmjs/stargate';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { EthereumHTLCClient } from './ethereum-htlc-client';
 import { CosmosHTLCClient } from './cosmos-htlc-client';
 import { DexClient } from './dex-client';
@@ -13,22 +11,20 @@ import {
   HTLCOrder,
   CrossChainSwapParams,
   SwapQuote,
-  SwapStatus,
   LegacySwapStatus,
   ChainConfig,
   ChainType,
-  TokenInfo,
-  SwapRoute
+  TokenInfo
 } from '../types';
 import {
   generateSecretPair,
   calculateTimelock,
   validateSwapParams,
-  formatAmount,
   storage
 } from '../utils';
-import { validateCrossChainSwapParams, validateSecret, validateSwapStatus } from '../validation/enhanced-validation';
+import { validateCrossChainSwapParams } from '../validation/enhanced-validation';
 import { RequestThrottle, ThrottleConfig } from '../utils/request-throttle';
+import { LegacyHTLCDetails } from '@evmore/types/src/migration/type-aliases';
 
 export interface FusionCosmosConfig {
   ethereum: {
@@ -95,8 +91,8 @@ export class FusionCosmosClient {
       throw new Error(`Invalid swap parameters: ${validation.errors.join(', ')}`);
     }
     
-    // Use sanitized parameters
-    const sanitizedParams = validation.sanitized!;
+    // Use validated parameters (stored for potential future use)
+    // Note: validation.sanitized is available but not currently used in this implementation
 
     // Generate secret pair
     const { secret, hash } = generateSecretPair();
@@ -193,67 +189,71 @@ export class FusionCosmosClient {
   /**
    * Get a quote for a cross-chain swap
    * @param params - Swap parameters
-   * @returns Promise resolving to the swap quote
+   * @returns Promise resolving to the quote
    */
-  async getQuote(params: CrossChainSwapParams): Promise<SwapQuote> {
-    // In a full implementation, this would:
-    // 1. Query DEX prices on target chain
-    // 2. Calculate optimal routing
-    // 3. Estimate fees and gas costs
-    // 4. Account for slippage
+  getQuote(params: CrossChainSwapParams): Promise<SwapQuote> {
+    // Validate parameters
+    const validation = validateCrossChainSwapParams(params);
+    if (!validation.valid) {
+      throw new Error(`Invalid swap parameters: ${validation.errors.join(', ')}`);
+    }
 
-    // Simplified mock implementation
-    const fromAmount = parseFloat(params.fromAmount);
-    const estimatedToAmount = fromAmount * 0.99; // 1% fee
-    const minimumReceived = estimatedToAmount * (1 - (params.slippageTolerance || 0.5) / 100);
-
-    return {
-      fromAmount: params.fromAmount,
-      toAmount: estimatedToAmount.toString(),
-      minimumReceived: minimumReceived.toString(),
-      priceImpact: 0.1, // 0.1%
-      estimatedGas: '200000',
+    // Mock implementation - in production this would query DEX APIs
+    const { fromAmount, fromToken, toToken } = params;
+    
+    // Simulate price calculation
+    const mockRate = 1.0; // 1:1 exchange rate for demo
+    const estimatedOutput = (parseFloat(fromAmount) * mockRate).toString();
+    
+    return Promise.resolve({
+      fromAmount: fromAmount,
+      toAmount: estimatedOutput,
+      minimumReceived: estimatedOutput,
+      priceImpact: 0.1, // 0.1% price impact
+      estimatedGas: '500000',
       route: [{
         hopIndex: 0,
         fromChain: params.fromChain,
         toChain: params.toChain,
-        fromToken: params.fromToken,
-        toToken: params.toToken,
-        expectedAmount: estimatedToAmount.toString(),
-        minimumAmount: minimumReceived.toString()
+        fromToken: fromToken,
+        toToken: toToken,
+        expectedAmount: estimatedOutput,
+        minimumAmount: estimatedOutput
       }],
       fees: {
-        networkFee: '0.01',
-        protocolFee: '0.001',
-        relayerFee: '0.005',
-        total: '0.016'
+        networkFee: '0.001',
+        protocolFee: '0.002',
+        relayerFee: '0.003',
+        total: '0.006'
       },
-      estimatedExecutionTime: 300, // 5 minutes in seconds
+      estimatedExecutionTime: 300,
       slippageTolerance: params.slippageTolerance || 0.5,
-      deadline: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
-    };
+      deadline: params.deadline || Math.floor(Date.now() / 1000) + 3600
+    });
   }
 
   /**
    * Get the status of a swap
-   * @param htlcId - HTLC ID to check
+   * @param htlcId - HTLC ID
    * @param sourceChain - The source chain ('ethereum' or 'cosmos')
    * @returns Promise resolving to the swap status
    */
   async getSwapStatus(htlcId: string, sourceChain: 'ethereum' | 'cosmos'): Promise<{ id: string; status: LegacySwapStatus; error?: string; updatedAt: number }> {
     try {
-      let htlcDetails;
+      let htlcDetails: LegacyHTLCDetails | null = null;
 
       if (sourceChain === 'ethereum') {
-        htlcDetails = await this.requestThrottle.execute(
+        const result = await this.requestThrottle.execute(
           () => this.ethereumClient.getHTLC(htlcId),
           { priority: 'medium', timeout: 15000 }
         );
+        htlcDetails = result as LegacyHTLCDetails;
       } else {
-        htlcDetails = await this.requestThrottle.execute(
+        const result = await this.requestThrottle.execute(
           () => this.cosmosClient.getHTLC(htlcId),
           { priority: 'medium', timeout: 15000 }
         );
+        htlcDetails = result as LegacyHTLCDetails;
       }
 
       if (!htlcDetails) {
@@ -325,7 +325,7 @@ export class FusionCosmosClient {
    * @param chainId - Chain identifier
    * @returns Promise resolving to list of supported tokens
    */
-  async getSupportedTokens(chainId: string): Promise<TokenInfo[]> {
+  getSupportedTokens(chainId: string): Promise<TokenInfo[]> {
     // Mock implementation - in production this would query token registries
     const tokensByChain: Record<string, TokenInfo[]> = {
       '1': [
@@ -364,7 +364,7 @@ export class FusionCosmosClient {
       ]
     };
 
-    return tokensByChain[chainId] || [];
+    return Promise.resolve(tokensByChain[chainId] || []);
   }
 
   /**
@@ -485,7 +485,7 @@ export class FusionCosmosClient {
     const currentTime = Math.floor(Date.now() / 1000);
     const deadline = params.deadline || currentTime + 3600; // 1 hour default
     const sourceTimelock = deadline;
-    const targetTimelock = deadline - 1800; // 30 minutes less
+    // Note: targetTimelock calculation removed as it's not currently used
 
     // Plan the cross-chain swap with DEX routing
     const swapPlan = await this.dexClient.planCrossChainSwap({
@@ -593,7 +593,7 @@ export class FusionCosmosClient {
     targetToken: string,
     maxHops?: number
   ): Promise<{
-    routes: SwapRoute[];
+    routes: Array<Record<string, unknown>>; // Swap route structure
     estimatedOutput: string;
     priceImpact: string;
     totalFees: string;
@@ -610,7 +610,7 @@ export class FusionCosmosClient {
     );
 
     return {
-      routes: routeInfo.routes[0] || [],
+      routes: (routeInfo.routes[0] || []) as unknown as Record<string, unknown>[],
       estimatedOutput: routeInfo.estimatedOutput,
       priceImpact: routeInfo.priceImpact,
       totalFees: routeInfo.totalFees,

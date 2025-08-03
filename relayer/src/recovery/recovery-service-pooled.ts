@@ -27,6 +27,33 @@ interface RecoveryStats {
   errors: number;
 }
 
+// Add proper interfaces for contract responses
+interface CosmosHTLCQueryResponse {
+  htlcs: Array<{
+    id: string;
+    sender: string;
+    receiver: string;
+    amount: Array<{ denom: string; amount: string }>;
+    hashlock: string;
+    timelock: number;
+    withdrawn: boolean;
+    refunded: boolean;
+    target_chain: string;
+    target_address: string;
+  }>;
+}
+
+interface CosmosClientWithQuery {
+  queryContractSmart: (address: string, queryMsg: Record<string, unknown>) => Promise<CosmosHTLCQueryResponse>;
+}
+
+function hasQueryContractSmart(client: unknown): client is CosmosClientWithQuery {
+  return client !== null && 
+         typeof client === 'object' && 
+         'queryContractSmart' in client && 
+         typeof (client as CosmosClientWithQuery).queryContractSmart === 'function';
+}
+
 export class PooledRecoveryService {
   private poolManager: ConnectionPoolManager;
   private config: AppConfig;
@@ -273,7 +300,14 @@ export class PooledRecoveryService {
             };
 
             try {
-              const result = await (client as any).queryContractSmart(
+              if (!hasQueryContractSmart(client)) {
+                this.logger.debug({ 
+                  chainId: chainConfig.chainId 
+                }, 'Client does not support queryContractSmart');
+                return;
+              }
+
+              const result = await client.queryContractSmart(
                 chainConfig.htlcContractAddress,
                 queryMsg
               );

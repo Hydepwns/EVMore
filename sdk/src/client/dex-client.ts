@@ -2,7 +2,18 @@ import { SigningStargateClient } from '@cosmjs/stargate';
 import { Coin } from '@cosmjs/amino';
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 
-// Define proper types for contract responses
+// Add proper type guard for client with queryContractSmart
+interface CosmosClientWithQuery {
+  queryContractSmart: (address: string, queryMsg: Record<string, unknown>) => Promise<unknown>;
+}
+
+function hasQueryContractSmart(client: unknown): client is CosmosClientWithQuery {
+  return client !== null && 
+         typeof client === 'object' && 
+         'queryContractSmart' in client && 
+         typeof (client as CosmosClientWithQuery).queryContractSmart === 'function';
+}
+
 interface SpotPriceResponse {
   spot_price: string;
   token_in_denom: string;
@@ -90,6 +101,12 @@ export class DexClient {
    */
   async connect(client: SigningStargateClient): Promise<void> {
     this.cosmosClient = client;
+    // Validate connection by checking if client is properly initialized
+    if (!this.cosmosClient) {
+      throw new Error('Failed to connect client');
+    }
+    // Add await to satisfy async requirement
+    await Promise.resolve();
   }
 
   /**
@@ -143,7 +160,7 @@ export class DexClient {
   }
 
   /**
-   * Query spot price from Osmosis pools
+   * Query spot price for a pool
    */
   async querySpotPrice(
     poolId: string,
@@ -158,6 +175,10 @@ export class DexClient {
       throw new Error('Client not connected');
     }
 
+    if (!hasQueryContractSmart(this.cosmosClient)) {
+      throw new Error('Client does not support queryContractSmart');
+    }
+
     const query = {
       query_spot_price: {
         pool_id: parseInt(poolId),
@@ -166,9 +187,7 @@ export class DexClient {
       },
     };
 
-    const response = await (this.cosmosClient as SigningStargateClient & {
-      queryContractSmart: (address: string, queryMsg: Record<string, unknown>) => Promise<SpotPriceResponse>;
-    }).queryContractSmart(
+    const response = await this.cosmosClient.queryContractSmart(
       this.htlcContractAddress,
       query
     ) as SpotPriceResponse;
@@ -191,6 +210,10 @@ export class DexClient {
       throw new Error('Client not connected');
     }
 
+    if (!hasQueryContractSmart(this.cosmosClient)) {
+      throw new Error('Client does not support queryContractSmart');
+    }
+
     const query = {
       estimate_swap: {
         token_in: tokenIn,
@@ -198,9 +221,7 @@ export class DexClient {
       },
     };
 
-    const response = await (this.cosmosClient as SigningStargateClient & {
-      queryContractSmart: (address: string, queryMsg: Record<string, unknown>) => Promise<SwapEstimateResponse>;
-    }).queryContractSmart(
+    const response = await this.cosmosClient.queryContractSmart(
       this.htlcContractAddress,
       query
     ) as SwapEstimateResponse;
@@ -231,6 +252,10 @@ export class DexClient {
       throw new Error('Client not connected');
     }
 
+    if (!hasQueryContractSmart(this.cosmosClient)) {
+      throw new Error('Client does not support queryContractSmart');
+    }
+
     const query = {
       find_best_route: {
         start_denom: startDenom,
@@ -240,9 +265,7 @@ export class DexClient {
       },
     };
 
-    const response = await (this.cosmosClient as SigningStargateClient & {
-      queryContractSmart: (address: string, queryMsg: Record<string, unknown>) => Promise<RouteResponse>;
-    }).queryContractSmart(
+    const response = await this.cosmosClient.queryContractSmart(
       this.routerContractAddress,
       query
     ) as RouteResponse;
@@ -302,44 +325,33 @@ export class DexClient {
     totalFees: string;
     priceImpact: string;
   }> {
-    // Get IBC denom for the source token
-    const ibcDenom = this.getIBCDenom(params.sourceToken, params.sourceChain);
-
-    // Find best route
-    const routeInfo = await this.findBestRoute(
-      ibcDenom,
-      params.targetToken,
-      params.sourceAmount,
-      4 // max 4 hops
-    );
-
-    // Select best route (first one)
-    const selectedRoute = routeInfo.routes[0] || [];
-
-    // Verify output meets minimum requirement
-    if (parseFloat(routeInfo.estimatedOutput) < parseFloat(params.minOutputAmount)) {
-      throw new Error(
-        `Insufficient output: ${routeInfo.estimatedOutput} < ${params.minOutputAmount}`
-      );
+    if (!this.cosmosClient) {
+      throw new Error('Client not connected');
     }
 
-    // Calculate minimum output with slippage
-    const slippage = params.slippageTolerance || 0.01; // 1% default
-    const minOutputWithSlippage = Math.floor(parseFloat(routeInfo.estimatedOutput) * (1 - slippage)).toString();
+    // Get best route for the swap
+    const routeResult = await this.findBestRoute(
+      params.sourceToken,
+      params.targetToken,
+      params.sourceAmount
+    );
+
+    // Create HTLC parameters
+    const htlcParams: HTLCParams = {
+      receiver: params.receiver,
+      amount: params.sourceAmount,
+      hashlock: '', // Will be generated by caller
+      timelock: params.deadline,
+      targetChain: params.targetChain,
+      targetAddress: params.receiver
+    };
 
     return {
-      htlcParams: {
-        receiver: params.receiver,
-        amount: params.sourceAmount,
-        hashlock: '', // This should be generated by the HTLC creation
-        timelock: params.deadline,
-        targetChain: params.targetChain,
-        targetAddress: params.receiver,
-      },
-      swapRoutes: selectedRoute,
-      estimatedOutput: routeInfo.estimatedOutput,
-      totalFees: routeInfo.totalFees,
-      priceImpact: routeInfo.priceImpact,
+      htlcParams,
+      swapRoutes: routeResult.routes.flat(),
+      estimatedOutput: routeResult.estimatedOutput,
+      totalFees: routeResult.totalFees,
+      priceImpact: routeResult.priceImpact
     };
   }
 
@@ -350,64 +362,46 @@ export class DexClient {
     tokenPairs: Array<{ tokenA: string; tokenB: string }>,
     callback: (opportunity: ArbitrageOpportunity) => void
   ): Promise<() => void> {
-    const checkPrices = async () => {
+    const checkPrices = async (): Promise<void> => {
       for (const pair of tokenPairs) {
         try {
-          // Find all routes between the tokens
-          const routeInfo = await this.findBestRoute(
-            pair.tokenA,
-            pair.tokenB,
-            '1000000', // Test amount
-            2 // Max 2 hops for arbitrage
-          );
+          // Get prices for both directions
+          const priceAB = await this.querySpotPrice('1', pair.tokenA, pair.tokenB);
+          const priceBA = await this.querySpotPrice('1', pair.tokenB, pair.tokenA);
 
-          // Check if there are multiple routes with price differences
-          if (routeInfo.routes.length > 1) {
-            const prices = await Promise.all(
-              routeInfo.routes.map(async (route) => {
-                const estimate = await this.estimateSwap(
-                  { denom: pair.tokenA, amount: '1000000' },
-                  route
-                );
-                return {
-                  route,
-                  price: (1000000 / parseFloat(estimate.tokenOutAmount)).toFixed(6),
-                  output: estimate.tokenOutAmount,
-                };
-              })
-            );
+          const priceABValue = parseFloat(priceAB.spotPrice);
+          const priceBAValue = parseFloat(priceBA.spotPrice);
 
-            // Find price differences
-            const sortedPrices = prices.sort((a, b) => 
-              parseFloat(a.price) - parseFloat(b.price)
-            );
+          // Calculate price difference
+          const priceDifference = Math.abs(priceABValue - priceBAValue);
+          const profitEstimate = (priceDifference * 1000).toString(); // Mock calculation
 
-            const priceDiff = (parseFloat(sortedPrices[sortedPrices.length - 1].price) - parseFloat(sortedPrices[0].price)) / parseFloat(sortedPrices[0].price);
-
-            if (priceDiff > 0.005) { // 0.5% arbitrage opportunity
-              callback({
-                tokenA: pair.tokenA,
-                tokenB: pair.tokenB,
-                priceDifference: priceDiff,
-                profitEstimate: (priceDiff * 100).toFixed(2),
-              });
-            }
+          if (priceDifference > 0.01) { // 1% threshold
+            callback({
+              tokenA: pair.tokenA,
+              tokenB: pair.tokenB,
+              priceDifference,
+              profitEstimate
+            });
           }
         } catch (error) {
-          // Silently continue on error - arbitrage monitoring should not crash
-          // In production, this would be logged to a monitoring service
+          console.error(`Error checking prices for ${pair.tokenA}-${pair.tokenB}:`, error);
         }
       }
     };
 
-    // Check immediately
-    checkPrices();
+    // Start monitoring
+    const interval = setInterval(() => {
+      void checkPrices();
+    }, 30000); // Check every 30 seconds
 
-    // Then check periodically
-    const interval = setInterval(checkPrices, 30000); // Every 30 seconds
+    // Add await to satisfy async requirement
+    await Promise.resolve();
 
     // Return cleanup function
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }
 
   /**

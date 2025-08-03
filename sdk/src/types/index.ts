@@ -58,3 +58,8 @@ export interface PooledTransactionResult {
 
 // CosmWasm client type extensions
 export * from './cosmwasm-client';
+
+// Export new dedicated type files
+export * from './cosmos-htlc';
+export * from './ethereum-htlc';
+export * from './dex';

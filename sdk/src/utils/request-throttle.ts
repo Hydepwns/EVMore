@@ -75,7 +75,7 @@ export class RequestThrottle {
       }
 
       this.queue.push(queuedRequest);
-      this.processQueue();
+      void this.processQueue();
     });
   }
 
@@ -99,7 +99,7 @@ export class RequestThrottle {
     // Check for timeout
     if (request.context.timeout && Date.now() - request.timestamp > request.context.timeout) {
       request.reject(new Error('Request timeout in queue'));
-      this.processQueue(); // Process next request
+      void this.processQueue(); // Process next request
       return;
     }
 
@@ -125,7 +125,7 @@ export class RequestThrottle {
       this.lastRequestTime = Date.now();
       
       // Process next request
-      setTimeout(() => this.processQueue(), 0);
+      setTimeout(() => void this.processQueue(), 0);
     }
   }
 
@@ -186,7 +186,7 @@ export class RequestThrottle {
           context: newContext,
           timestamp: Date.now()
         });
-        this.processQueue();
+        void this.processQueue();
       }, this.calculateRetryDelay(newContext.retryCount));
     } else {
       request.reject(error);

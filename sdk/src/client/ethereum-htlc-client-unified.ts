@@ -12,11 +12,76 @@ import {
   HTLCDetails,
   HTLCError,
   HTLCErrorCode,
-  ConnectionStrategy
+  ConnectionStrategy,
+  ConnectionStrategyFactory
 } from '@evmore/utils';
 import { HTLC_ABI, ERC20_ABI } from '@evmore/utils';
-import { validateAmount, validateAddress, isValidHash } from '../utils';
+import { validateAddress, isValidHash } from '../utils';
 import { TransactionReceipt, PooledTransactionResult } from '../types';
+
+// Add proper interfaces for contract responses
+interface HTLCContractResult {
+  sender: string;
+  receiver: string;
+  token: string;
+  amount: ethers.BigNumber;
+  hashlock: string;
+  timelock: ethers.BigNumber;
+  withdrawn: boolean;
+  refunded: boolean;
+  targetChain: string;
+  targetAddress: string;
+}
+
+// Type guard for contract transaction
+function isContractTransaction(tx: unknown): tx is ethers.ContractTransaction {
+  return tx !== null && typeof tx === 'object' && 'wait' in tx;
+}
+
+// Type guard for contract receipt
+function isContractReceipt(receipt: unknown): receipt is ethers.ContractReceipt {
+  return receipt !== null && typeof receipt === 'object' && 'hash' in receipt && 'blockNumber' in receipt;
+}
+
+// Type guard for parsed log
+function isParsedLog(parsed: unknown): parsed is { name: string; args: Record<string, unknown> } {
+  return parsed !== null && typeof parsed === 'object' && 'name' in parsed && 'args' in parsed;
+}
+
+// Type guard for contract interface
+function hasContractInterface(contract: unknown): contract is { interface: { parseLog: (log: ethers.providers.Log) => unknown } } {
+  return contract !== null && typeof contract === 'object' && 'interface' in contract && 
+         typeof (contract as Record<string, unknown>).interface === 'object' && 
+         'parseLog' in ((contract as Record<string, unknown>).interface as Record<string, unknown>);
+}
+
+// Type guard for contract methods
+function hasContractMethods(contract: unknown): contract is { 
+  createHTLC: (...args: unknown[]) => Promise<unknown>;
+  withdraw: (...args: unknown[]) => Promise<unknown>;
+  refund: (...args: unknown[]) => Promise<unknown>;
+  getHTLC: (...args: unknown[]) => Promise<unknown>;
+  estimateGas: { createHTLC: (...args: unknown[]) => Promise<unknown> };
+} {
+  return contract !== null && typeof contract === 'object' && 
+         'createHTLC' in contract && 'withdraw' in contract && 'refund' in contract && 'getHTLC' in contract;
+}
+
+// Type guard for ERC20 contract
+function hasERC20Methods(contract: unknown): contract is {
+  balanceOf: (address: string) => Promise<ethers.BigNumber>;
+  decimals: () => Promise<number>;
+  allowance: (owner: string, spender: string) => Promise<ethers.BigNumber>;
+  approve: (spender: string, amount: ethers.BigNumber) => Promise<ethers.ContractTransaction>;
+} {
+  return contract !== null && typeof contract === 'object' && 
+         'balanceOf' in contract && 'decimals' in contract && 'allowance' in contract && 'approve' in contract;
+}
+
+// Type guard for gas estimation result
+function isGasEstimate(value: unknown): value is ethers.BigNumber {
+  return value !== null && typeof value === 'object' && 'toString' in value;
+}
 
 /**
  * Ethereum configuration
@@ -74,23 +139,22 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
    * Create HTLC on Ethereum
    */
   public async createHTLC(params: CreateEthereumHTLCParams): Promise<HTLCOperationResult> {
-    this.validateHTLCParams(params);
-    
-    if (!validateAddress(params.receiver, 'ethereum')) {
-      throw new HTLCError('Invalid receiver address', HTLCErrorCode.INVALID_PARAMS);
-    }
-
-    if (!validateAddress(params.token, 'ethereum')) {
-      throw new HTLCError('Invalid token address', HTLCErrorCode.INVALID_PARAMS);
+    if (!validateAddress(params.token, 'ethereum') || !validateAddress(params.receiver, 'ethereum')) {
+      throw new HTLCError('Invalid address format', HTLCErrorCode.INVALID_PARAMS);
     }
 
     return await this.executeWithConnection(async (provider) => {
       if (!this.wallet) {
-        throw new HTLCError('Private key required for creating HTLC', HTLCErrorCode.INVALID_PARAMS);
+        throw new HTLCError('Private key required for HTLC creation', HTLCErrorCode.INVALID_PARAMS);
       }
 
       const signer = this.wallet.connect(provider);
-      const contract = new ethers.Contract(this.config.htlcContract, HTLC_ABI, signer);
+      const typedConfig = this.config as EthereumConfig;
+      const contract = new ethers.Contract(typedConfig.htlcContract, HTLC_ABI, signer);
+
+      if (!hasContractMethods(contract)) {
+        throw new HTLCError('Invalid contract interface', HTLCErrorCode.TRANSACTION_FAILED);
+      }
 
       // Handle ERC20 token approval if needed
       if (params.token !== ethers.constants.AddressZero) {
@@ -106,32 +170,51 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
           params.targetChain,
           params.targetAddress,
           {
-            gasLimit: this.config.gasLimit || 200000,
-            gasPrice: this.config.gasPrice ? ethers.utils.parseUnits(this.config.gasPrice, 'gwei') : undefined,
+            gasLimit: typedConfig.gasLimit || 200000,
+            gasPrice: typedConfig.gasPrice ? ethers.utils.parseUnits(typedConfig.gasPrice, 'gwei') : undefined,
             value: params.token === ethers.constants.AddressZero ? ethers.utils.parseUnits(params.amount, 18) : 0
           }
         );
 
+        if (!isContractTransaction(tx)) {
+          throw new HTLCError('Invalid transaction response', HTLCErrorCode.TRANSACTION_FAILED);
+        }
+
         const receipt = await tx.wait();
+
+        if (!isContractReceipt(receipt)) {
+          throw new HTLCError('Invalid receipt response', HTLCErrorCode.TRANSACTION_FAILED);
+        }
         
-        // Extract HTLC ID from logs
+        // Extract HTLC ID from logs with proper typing
         const htlcCreatedLog = receipt.logs.find((log: ethers.providers.Log) => {
           try {
+            if (!hasContractInterface(contract)) return false;
             const parsed = contract.interface.parseLog(log);
-            return parsed?.name === 'HTLCCreated';
+            return isParsedLog(parsed) && parsed.name === 'HTLCCreated';
           } catch {
             return false;
           }
         });
 
         let htlcId = '';
-        if (htlcCreatedLog) {
-          const parsed = contract.interface.parseLog(htlcCreatedLog);
-          htlcId = parsed?.args?.htlcId || '';
+        if (htlcCreatedLog && hasContractInterface(contract)) {
+          try {
+            const parsed = contract.interface.parseLog(htlcCreatedLog);
+            // Safely access the args property
+            if (isParsedLog(parsed) && parsed.args && typeof parsed.args === 'object') {
+              const args = parsed.args as Record<string, unknown>;
+              const htlcIdValue = args.htlcId;
+              htlcId = typeof htlcIdValue === 'string' ? htlcIdValue : '';
+            }
+          } catch {
+            // If parsing fails, continue without HTLC ID
+            htlcId = '';
+          }
         }
 
         return {
-          transactionHash: receipt.hash,
+          transactionHash: receipt.transactionHash,
           htlcId,
           blockNumber: receipt.blockNumber,
           gasUsed: receipt.gasUsed.toString(),
@@ -161,18 +244,31 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
       }
 
       const signer = this.wallet.connect(provider);
-      const contract = new ethers.Contract(this.config.htlcContract, HTLC_ABI, signer);
+      const typedConfig = this.config as EthereumConfig;
+      const contract = new ethers.Contract(typedConfig.htlcContract, HTLC_ABI, signer);
+
+      if (!hasContractMethods(contract)) {
+        throw new HTLCError('Invalid contract interface', HTLCErrorCode.TRANSACTION_FAILED);
+      }
 
       try {
         const tx = await contract.withdraw(htlcId, secret, {
-          gasLimit: this.config.gasLimit || 100000,
-          gasPrice: this.config.gasPrice ? ethers.utils.parseUnits(this.config.gasPrice, 'gwei') : undefined
+          gasLimit: typedConfig.gasLimit || 100000,
+          gasPrice: typedConfig.gasPrice ? ethers.utils.parseUnits(typedConfig.gasPrice, 'gwei') : undefined
         });
+
+        if (!isContractTransaction(tx)) {
+          throw new HTLCError('Invalid transaction response', HTLCErrorCode.TRANSACTION_FAILED);
+        }
 
         const receipt = await tx.wait();
 
+        if (!isContractReceipt(receipt)) {
+          throw new HTLCError('Invalid receipt response', HTLCErrorCode.TRANSACTION_FAILED);
+        }
+
         return {
-          transactionHash: receipt.hash,
+          transactionHash: receipt.transactionHash,
           htlcId,
           blockNumber: receipt.blockNumber,
           gasUsed: receipt.gasUsed.toString(),
@@ -199,18 +295,31 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
       }
 
       const signer = this.wallet.connect(provider);
-      const contract = new ethers.Contract(this.config.htlcContract, HTLC_ABI, signer);
+      const typedConfig = this.config as EthereumConfig;
+      const contract = new ethers.Contract(typedConfig.htlcContract, HTLC_ABI, signer);
+
+      if (!hasContractMethods(contract)) {
+        throw new HTLCError('Invalid contract interface', HTLCErrorCode.TRANSACTION_FAILED);
+      }
 
       try {
         const tx = await contract.refund(htlcId, {
-          gasLimit: this.config.gasLimit || 80000,
-          gasPrice: this.config.gasPrice ? ethers.utils.parseUnits(this.config.gasPrice, 'gwei') : undefined
+          gasLimit: typedConfig.gasLimit || 80000,
+          gasPrice: typedConfig.gasPrice ? ethers.utils.parseUnits(typedConfig.gasPrice, 'gwei') : undefined
         });
+
+        if (!isContractTransaction(tx)) {
+          throw new HTLCError('Invalid transaction response', HTLCErrorCode.TRANSACTION_FAILED);
+        }
 
         const receipt = await tx.wait();
 
+        if (!isContractReceipt(receipt)) {
+          throw new HTLCError('Invalid receipt response', HTLCErrorCode.TRANSACTION_FAILED);
+        }
+
         return {
-          transactionHash: receipt.hash,
+          transactionHash: receipt.transactionHash,
           htlcId,
           blockNumber: receipt.blockNumber,
           gasUsed: receipt.gasUsed.toString(),
@@ -232,10 +341,15 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
    */
   public async getHTLC(htlcId: string): Promise<HTLCDetails> {
     return await this.executeWithConnection(async (provider) => {
-      const contract = new ethers.Contract(this.config.htlcContract, HTLC_ABI, provider);
+      const typedConfig = this.config as EthereumConfig;
+      const contract = new ethers.Contract(typedConfig.htlcContract, HTLC_ABI, provider);
+
+      if (!hasContractMethods(contract)) {
+        throw new HTLCError('Invalid contract interface', HTLCErrorCode.TRANSACTION_FAILED);
+      }
 
       try {
-        const result = await contract.getHTLC(htlcId);
+        const result = await contract.getHTLC(htlcId) as HTLCContractResult;
         
         return {
           htlcId,
@@ -252,9 +366,10 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
           createdAt: new Date(), // Could be derived from blockchain
           expiresAt: this.calculateExpiration(Number(result.timelock))
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new HTLCError(
-          `Failed to get HTLC details: ${error.message}`,
+          `Failed to get HTLC details: ${errorMessage}`,
           HTLCErrorCode.HTLC_NOT_FOUND,
           htlcId
         );
@@ -269,11 +384,8 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
     try {
       await this.getHTLC(htlcId);
       return true;
-    } catch (error) {
-      if (error instanceof HTLCError && error.code === HTLCErrorCode.HTLC_NOT_FOUND) {
-        return false;
-      }
-      throw error;
+    } catch {
+      return false;
     }
   }
 
@@ -289,6 +401,11 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
       } else {
         // ERC20 balance
         const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+        
+        if (!hasERC20Methods(contract)) {
+          throw new HTLCError('Invalid ERC20 contract interface', HTLCErrorCode.TRANSACTION_FAILED);
+        }
+
         const balance = await contract.balanceOf(userAddress);
         const decimals = await contract.decimals();
         return ethers.utils.formatUnits(balance, decimals);
@@ -309,15 +426,20 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
     const signer = this.wallet.connect(provider);
     const contract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
     
+    if (!hasERC20Methods(contract)) {
+      throw new HTLCError('Invalid ERC20 contract interface', HTLCErrorCode.TRANSACTION_FAILED);
+    }
+    
+    const typedConfig = this.config as EthereumConfig;
     const allowance = await contract.allowance(
       await signer.getAddress(),
-      this.config.htlcContract
+      typedConfig.htlcContract
     );
     
     const requiredAmount = ethers.utils.parseUnits(amount, 18);
     
-    if (allowance < requiredAmount) {
-      const approveTx = await contract.approve(this.config.htlcContract, requiredAmount);
+    if (allowance.lt(requiredAmount)) {
+      const approveTx = await contract.approve(typedConfig.htlcContract, requiredAmount);
       await approveTx.wait();
     }
   }
@@ -327,10 +449,15 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
    */
   public async estimateCreateHTLCGas(params: CreateEthereumHTLCParams): Promise<string> {
     return await this.executeWithConnection(async (provider) => {
-      const contract = new ethers.Contract(this.config.htlcContract, HTLC_ABI, provider);
+      const typedConfig = this.config as EthereumConfig;
+      const contract = new ethers.Contract(typedConfig.htlcContract, HTLC_ABI, provider);
+      
+      if (!hasContractMethods(contract) || !contract.estimateGas?.createHTLC) {
+        throw new HTLCError('Invalid contract interface', HTLCErrorCode.TRANSACTION_FAILED);
+      }
       
       try {
-        const gasEstimate = await contract.createHTLC.estimateGas(
+        const gasEstimate = await contract.estimateGas.createHTLC(
           params.token,
           ethers.utils.parseUnits(params.amount, 18),
           params.hashlock,
@@ -341,6 +468,10 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
             value: params.token === ethers.constants.AddressZero ? ethers.utils.parseUnits(params.amount, 18) : 0
           }
         );
+        
+        if (!isGasEstimate(gasEstimate)) {
+          throw new HTLCError('Invalid gas estimate response', HTLCErrorCode.TRANSACTION_FAILED);
+        }
         
         return gasEstimate.toString();
       } catch (error: unknown) {
@@ -356,10 +487,9 @@ export class EthereumHTLCClient extends BaseHTLCClient<ethers.providers.JsonRpcP
 
 // Factory functions for backward compatibility
 export function createEthereumHTLCClient(config: EthereumConfig): EthereumHTLCClient {
-  const { ConnectionStrategyFactory } = require('@evmore/utils');
   const strategy = ConnectionStrategyFactory.createEthereumStrategy('direct', {
     rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}` // Should come from config
-  });
+  }) as ConnectionStrategy<ethers.providers.JsonRpcProvider>;
   return new EthereumHTLCClient(config, strategy);
 }
 
@@ -367,10 +497,9 @@ export function createPooledEthereumHTLCClient(
   config: EthereumConfig,
   connectionPool: ConnectionStrategy<ethers.providers.JsonRpcProvider>
 ): EthereumHTLCClient {
-  const { ConnectionStrategyFactory } = require('@evmore/utils');
   const strategy = ConnectionStrategyFactory.createEthereumStrategy('pooled', {
     connectionPool
-  });
+  }) as ConnectionStrategy<ethers.providers.JsonRpcProvider>;
   return new EthereumHTLCClient(config, strategy);
 }
 

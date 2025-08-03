@@ -3,18 +3,16 @@
  * Production-grade client for cross-chain HTLC operations on Cosmos
  */
 
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
-import { Coin } from '@cosmjs/amino';
-import { EncodeObject } from '@cosmjs/proto-signing';
+import { DirectSecp256k1HdWallet, EncodeObject } from '@cosmjs/proto-signing';
 import { CosmosQueryConnectionPool, CosmosSigningConnectionPool } from '@evmore/connection-pool';
 import { HTLCDetails, PooledTransactionResult, CosmWasmSigningClient } from '../types';
 import { validateAmount, isValidHash, isValidCosmosAddress } from '../utils';
 
 // Define proper types for transaction results
 interface CosmosTransactionResult {
-  events?: Array<{
+  events?: ReadonlyArray<{
     type: string;
-    attributes?: Array<{
+    attributes?: ReadonlyArray<{
       key: string;
       value: string;
     }>;
@@ -45,6 +43,34 @@ export interface PooledCosmosHTLCClientOptions {
   retryDelay?: number;
   gasMultiplier?: number;
   confirmations?: number;
+}
+
+// Add proper interfaces for HTLC query responses
+interface HTLCQueryResponse {
+  sender: string;
+  receiver: string;
+  amount: Array<{ denom: string; amount: string }>;
+  hashlock: string;
+  timelock: number;
+  withdrawn: boolean;
+  refunded: boolean;
+  target_chain: string;
+  target_address: string;
+}
+
+interface HTLCsQueryResponse {
+  htlcs: Array<{
+    id: string;
+    sender: string;
+    receiver: string;
+    amount: Array<{ denom: string; amount: string }>;
+    hashlock: string;
+    timelock: number;
+    withdrawn: boolean;
+    refunded: boolean;
+    target_chain: string;
+    target_address: string;
+  }>;
 }
 
 export class PooledCosmosHTLCClient {
@@ -157,10 +183,6 @@ export class PooledCosmosHTLCClient {
         }
       };
 
-      // Calculate gas
-      const gasEstimate = await this.estimateGas(client, senderAddress, msg);
-      const gas = Math.floor(gasEstimate * this.options.gasMultiplier!);
-
       // Execute the transaction
       const cosmwasmClient = client as CosmWasmSigningClient;
       const result = await cosmwasmClient.execute(
@@ -219,10 +241,6 @@ export class PooledCosmosHTLCClient {
           secret: secret
         }
       };
-
-      // Calculate gas
-      const gasEstimate = await this.estimateGas(client, senderAddress, msg);
-      const gas = Math.floor(gasEstimate * this.options.gasMultiplier!);
 
       // Execute the transaction
       const cosmwasmClient = client as CosmWasmSigningClient;
@@ -284,10 +302,6 @@ export class PooledCosmosHTLCClient {
         }
       };
 
-      // Calculate gas
-      const gasEstimate = await this.estimateGas(client, senderAddress, msg);
-      const gas = Math.floor(gasEstimate * this.options.gasMultiplier!);
-
       // Execute the transaction
       const cosmwasmClient = client as CosmWasmSigningClient;
       const result = await cosmwasmClient.execute(
@@ -312,24 +326,23 @@ export class PooledCosmosHTLCClient {
   }
 
   /**
-   * Get HTLC details
+   * Get HTLC details by ID
    */
   async getHTLCDetails(htlcId: string): Promise<HTLCDetails> {
-    if (!isValidHash(htlcId)) {
-      throw new Error('Invalid HTLC ID format');
+    if (!htlcId || typeof htlcId !== 'string') {
+      throw new Error('Invalid HTLC ID');
     }
 
     return this.queryPool.withClient(async (client) => {
-      // Query the contract
       const queryMsg = {
         get_htlc: {
           htlc_id: htlcId
         }
       };
 
-      // This requires the client to support smart contract queries
-      // For now, we'll use a type assertion, but in production you'd want proper typing
-      const result = await (client as any).queryContractSmart(
+      // Type-safe query with proper error handling
+      const result = await this.safeQueryContractSmart<HTLCQueryResponse>(
+        client,
         this.config.htlcContract,
         queryMsg
       );
@@ -376,12 +389,13 @@ export class PooledCosmosHTLCClient {
         : { get_htlcs_by_receiver: { receiver: address } };
 
       try {
-        const result = await (client as any).queryContractSmart(
+        const result = await this.safeQueryContractSmart<HTLCsQueryResponse>(
+          client,
           this.config.htlcContract,
           queryMsg
         );
 
-        return (result.htlcs || []).map((htlc: any) => ({
+        return (result.htlcs || []).map((htlc) => ({
           htlcId: htlc.id,
           sender: htlc.sender,
           receiver: htlc.receiver,
@@ -427,7 +441,8 @@ export class PooledCosmosHTLCClient {
   private async estimateGas(client: CosmWasmSigningClient, sender: string, msg: EncodeObject): Promise<number> {
     try {
       const gasEstimate = await client.simulate(sender, [msg], '');
-      return Math.floor(gasEstimate * this.options.gasMultiplier);
+      const multiplier = this.options.gasMultiplier || 1.2; // Default multiplier
+      return Math.floor(gasEstimate * multiplier);
     } catch (error) {
       // Fallback to default gas limit
       return this.config.gasLimit || 200000;
@@ -453,6 +468,28 @@ export class PooledCosmosHTLCClient {
     } catch (error) {
       return null;
     }
+  }
+
+  /**
+   * Safe wrapper for queryContractSmart with proper typing
+   */
+  private async safeQueryContractSmart<T>(
+    client: unknown,
+    contractAddress: string,
+    queryMsg: Record<string, unknown>
+  ): Promise<T> {
+    // Type guard to ensure client has queryContractSmart method
+    if (!client || typeof client !== 'object' || !('queryContractSmart' in client)) {
+      throw new Error('Invalid client: missing queryContractSmart method');
+    }
+
+    const typedClient = client as { queryContractSmart: (address: string, query: Record<string, unknown>) => Promise<T> };
+    
+    if (typeof typedClient.queryContractSmart !== 'function') {
+      throw new Error('Invalid client: queryContractSmart is not a function');
+    }
+
+    return await typedClient.queryContractSmart(contractAddress, queryMsg);
   }
 
   /**

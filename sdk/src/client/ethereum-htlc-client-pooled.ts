@@ -75,7 +75,7 @@ export class PooledEthereumHTLCClient {
 
     // Create pooled connection strategy
     const strategy = ConnectionStrategyFactory.createEthereumStrategy('pooled', {
-      connectionPool
+      connectionPool: connectionPool as any
     });
 
     this.unifiedClient = new UnifiedEthereumHTLCClient(unifiedConfig, strategy);
