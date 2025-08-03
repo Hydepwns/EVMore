@@ -1,0 +1,103 @@
+groups:
+  - name: connection_pool_alerts
+    interval: 30s
+    rules:
+      # High pool utilization
+      - alert: ConnectionPoolHighUtilization
+        expr: (fusion_connection_pool_connections_active / fusion_connection_pool_connections_total) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Connection pool {{ $labels.pool }} high utilization"
+          description: "Connection pool {{ $labels.pool }} is at {{ $value | humanizePercentage }} utilization"
+
+      # Pool exhausted
+      - alert: ConnectionPoolExhausted
+        expr: fusion_connection_pool_connections_active == fusion_connection_pool_connections_total
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Connection pool {{ $labels.pool }} exhausted"
+          description: "Connection pool {{ $labels.pool }} has no available connections"
+
+      # Circuit breaker open
+      - alert: CircuitBreakerOpen
+        expr: fusion_connection_pool_circuit_breaker_status == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit breaker open for {{ $labels.pool }} - {{ $labels.endpoint }}"
+          description: "Circuit breaker is open, indicating persistent failures"
+
+      # Endpoint unhealthy
+      - alert: EndpointUnhealthy
+        expr: fusion_connection_pool_health_status == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Endpoint {{ $labels.endpoint }} unhealthy in pool {{ $labels.pool }}"
+          description: "Endpoint has been unhealthy for 5 minutes"
+
+      # High error rate
+      - alert: ConnectionPoolHighErrorRate
+        expr: rate(fusion_connection_pool_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in pool {{ $labels.pool }}"
+          description: "Error rate is {{ $value | humanize }} errors/sec for {{ $labels.error_type }} errors"
+
+      # High latency
+      - alert: ConnectionPoolHighLatency
+        expr: histogram_quantile(0.95, sum(rate(fusion_connection_pool_request_duration_ms_bucket[5m])) by (pool, le)) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency in pool {{ $labels.pool }}"
+          description: "95th percentile latency is {{ $value | humanize }}ms"
+
+      # Queue growing
+      - alert: ConnectionPoolQueueGrowing
+        expr: fusion_connection_pool_queue_size > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Connection pool {{ $labels.pool }} queue growing"
+          description: "{{ $value }} requests waiting in queue"
+
+      # Queue timeouts
+      - alert: ConnectionPoolQueueTimeouts
+        expr: rate(fusion_connection_pool_queue_timeouts_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Connection pool {{ $labels.pool }} experiencing queue timeouts"
+          description: "{{ $value | humanize }} queue timeouts per second"
+
+      # Connection churn
+      - alert: ConnectionPoolHighChurn
+        expr: rate(fusion_connection_pool_connections_destroyed_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High connection churn in pool {{ $labels.pool }}"
+          description: "Connections being destroyed at {{ $value | humanize }} per second"
+
+      # No healthy endpoints
+      - alert: NoHealthyEndpoints
+        expr: sum(fusion_connection_pool_health_status == 0) by (pool) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No healthy endpoints in pool {{ $labels.pool }}"
+          description: "All endpoints are unhealthy, pool cannot serve requests"

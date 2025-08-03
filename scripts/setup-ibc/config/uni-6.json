@@ -1,0 +1,21 @@
+{
+  "chain_id": "uni-6",
+  "chain_name": "Juno Testnet",
+  "binary": "junod",
+  "prefix": "juno",
+  "denom": "ujunox",
+  "rpc": "https://rpc.testnet.juno.strange.love:443",
+  "rest": "https://rest.testnet.juno.strange.love:443",
+  "grpc": "grpc.testnet.juno.strange.love:443",
+  "gas_prices": "0.075ujunox",
+  "gas_adjustment": "1.3",
+  "account_prefix": "juno",
+  "validator_prefix": "junovaloper",
+  "trust_period": "168h",
+  "trusting_period": "336h",
+  "max_clock_drift": "40s",
+  "packet_forward": {
+    "enabled": true,
+    "fee_percentage": "0.001"
+  }
+}

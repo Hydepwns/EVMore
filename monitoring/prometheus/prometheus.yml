@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # Fusion relayer metrics
+  - job_name: 'fusion-relayer'
+    static_configs:
+      - targets: ['relayer:9090']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fusion_.*'
+        action: keep
+
+  # Connection pool specific metrics
+  - job_name: 'connection-pools'
+    static_configs:
+      - targets: ['relayer:9090']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fusion_connection_pool_.*'
+        action: keep
+
+  # Ethereum metrics (if using ethereum-prometheus-exporter)
+  - job_name: 'ethereum'
+    static_configs:
+      - targets: ['ethereum:6060']
+    metrics_path: '/debug/metrics/prometheus'
+
+  # Cosmos metrics (if exposed)
+  - job_name: 'cosmos'
+    static_configs:
+      - targets: ['osmosis:26660', 'cosmoshub:26660']

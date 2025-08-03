@@ -1,0 +1,21 @@
+{
+  "chain_id": "osmo-test-5",
+  "chain_name": "Osmosis Testnet",
+  "binary": "osmosisd",
+  "prefix": "osmo",
+  "denom": "uosmo",
+  "rpc": "https://rpc.testnet.osmosis.zone:443",
+  "rest": "https://rest.testnet.osmosis.zone:443",
+  "grpc": "grpc.testnet.osmosis.zone:443",
+  "gas_prices": "0.025uosmo",
+  "gas_adjustment": "1.3",
+  "account_prefix": "osmo",
+  "validator_prefix": "osmovaloper",
+  "trust_period": "168h",
+  "trusting_period": "336h",
+  "max_clock_drift": "40s",
+  "packet_forward": {
+    "enabled": true,
+    "fee_percentage": "0.001"
+  }
+}

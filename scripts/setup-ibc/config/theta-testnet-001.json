@@ -1,0 +1,21 @@
+{
+  "chain_id": "theta-testnet-001",
+  "chain_name": "Cosmos Hub Testnet",
+  "binary": "gaiad",
+  "prefix": "cosmos",
+  "denom": "uatom",
+  "rpc": "https://rpc.sentry-01.theta-testnet.polypore.xyz:443",
+  "rest": "https://rest.sentry-01.theta-testnet.polypore.xyz:443",
+  "grpc": "grpc.sentry-01.theta-testnet.polypore.xyz:443",
+  "gas_prices": "0.025uatom",
+  "gas_adjustment": "1.3",
+  "account_prefix": "cosmos",
+  "validator_prefix": "cosmosvaloper",
+  "trust_period": "168h",
+  "trusting_period": "336h",
+  "max_clock_drift": "40s",
+  "packet_forward": {
+    "enabled": false,
+    "fee_percentage": "0"
+  }
+}

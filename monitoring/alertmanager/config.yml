@@ -1,0 +1,65 @@
+global:
+  resolve_timeout: 5m
+  # Slack configuration (optional)
+  # slack_api_url: 'YOUR_SLACK_WEBHOOK_URL'
+
+# Route tree
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  
+  routes:
+    # Critical alerts
+    - match:
+        severity: critical
+      receiver: 'critical'
+      continue: true
+      
+    # Connection pool specific alerts
+    - match_re:
+        alertname: '^ConnectionPool.*|^CircuitBreaker.*|^NoHealthyEndpoints'
+      receiver: 'connection-pool'
+      group_by: ['pool']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+
+# Receivers
+receivers:
+  - name: 'default'
+    # Add your notification integrations here
+    # webhook_configs:
+    #   - url: 'http://your-webhook-endpoint'
+    #     send_resolved: true
+
+  - name: 'critical'
+    # Critical alerts configuration
+    # pagerduty_configs:
+    #   - service_key: 'YOUR_PAGERDUTY_SERVICE_KEY'
+    #     description: '{{ .GroupLabels.alertname }}'
+    
+  - name: 'connection-pool'
+    # Connection pool specific notifications
+    # slack_configs:
+    #   - channel: '#alerts-connection-pool'
+    #     title: 'Connection Pool Alert'
+    #     text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ end }}'
+
+# Inhibition rules
+inhibit_rules:
+  # If all endpoints are unhealthy, inhibit individual endpoint alerts
+  - source_match:
+      alertname: 'NoHealthyEndpoints'
+    target_match:
+      alertname: 'EndpointUnhealthy'
+    equal: ['pool']
+    
+  # If circuit breaker is open, inhibit high error rate alerts
+  - source_match:
+      alertname: 'CircuitBreakerOpen'
+    target_match:
+      alertname: 'ConnectionPoolHighErrorRate'
+    equal: ['pool', 'endpoint']
