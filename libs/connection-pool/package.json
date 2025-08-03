@@ -1,0 +1,29 @@
+{
+  "name": "@evmore/connection-pool",
+  "version": "1.0.0",
+  "description": "Production-grade RPC connection pooling for Ethereum and Cosmos chains",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.31.0",
+    "@cosmjs/proto-signing": "^0.31.0", 
+    "@cosmjs/stargate": "^0.31.0",
+    "ethers": "^5.7.0",
+    "prom-client": "^15.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.3.0"
+  },
+  "keywords": ["connection-pool", "ethereum", "cosmos", "rpc"],
+  "author": "EVMore Team",
+  "license": "MIT"
+}

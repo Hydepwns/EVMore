@@ -1,0 +1,12 @@
+{
+  "name": "@evmore/ibc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests for IBC package yet\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
