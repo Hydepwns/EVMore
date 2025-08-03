@@ -33,14 +33,14 @@
     "dev:relayer": "cd relayer && npm run dev",
     "deploy:local": "npm run deploy:ethereum:local && npm run deploy:cosmwasm:local",
     "deploy:ethereum:local": "cd contracts/ethereum && npx hardhat run scripts/deploy.js --network localhost",
-    "deploy:cosmwasm:local": "cd contracts/cosmwasm && ./scripts/deploy-local.sh",
+    "deploy:cosmwasm:local": "cd contracts/cosmwasm && ./scripts/deploy-testnet.sh",
     "clean": "turbo run clean && npm run clean:contracts",
     "clean:contracts": "cd contracts/ethereum && npx hardhat clean",
     "lint": "turbo run lint && npm run lint:contracts",
     "lint:contracts": "cd contracts/ethereum && npx solhint 'contracts/**/*.sol'",
     "format": "turbo run format",
-    "config:validate": "node -e \"require('./shared/config/fusion-config').getConfig(); console.log('Configuration is valid')\"",
-    "config:show": "node -e \"console.log(JSON.stringify(require('./shared/config/fusion-config').getConfig(), null, 2))\"",
+    "config:validate": "echo 'Configuration validation not implemented'",
+    "config:show": "echo 'Configuration display not implemented'",
     "docs:generate": "./scripts/generate-api-docs.sh",
     "docs:libs": "npm run docs:generate"
   },
@@ -54,7 +54,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/1inch-fusion-cosmos.git"
+    "url": "git+https://github.com/hydepwns/evmore.git"
   },
   "keywords": [
     "1inch",
@@ -65,10 +65,10 @@
     "atomic-swap",
     "defi"
   ],
-  "author": "1inch Fusion+ Team",
+  "author": "EVMore Team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yourusername/1inch-fusion-cosmos/issues"
+    "url": "https://github.com/hydepwns/evmore/issues"
   },
-  "homepage": "https://github.com/yourusername/1inch-fusion-cosmos#readme"
+  "homepage": "https://github.com/hydepwns/evmore#readme"
 }
