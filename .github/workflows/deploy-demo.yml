@@ -121,11 +121,14 @@ jobs:
       - name: Notify deployment
         run: |
           echo "🎉 Documentation ready for custom domain deployment!"
+          echo "Custom Domain: https://evmore.droo.foo"
           echo "Main Docs: https://evmore.droo.foo"
           echo "Demo: https://evmore.droo.foo/hackathon/"
           echo "API Reference: https://evmore.droo.foo/api-reference.html"
           echo "Examples: https://evmore.droo.foo/examples.html"
-          echo "GitHub Pages: https://hydepwns.github.io/EVMore/"
+          echo ""
+          echo "📝 Note: GitHub Pages will automatically deploy from /docs folder"
+          echo "🌐 Custom domain configured: evmore.droo.foo"
 
   # Performance and accessibility testing
   test-demo:
