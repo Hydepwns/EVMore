@@ -101,29 +101,7 @@ services:
     networks:
       - fusion-network
 
-  # PostgreSQL for relayer state
-  postgres:
-    image: postgres:15-alpine
-    container_name: fusion-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=fusion
-      - POSTGRES_PASSWORD=fusion123
-      - POSTGRES_DB=fusion_relayer
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - fusion-network
-
-  # Redis for caching
-  redis:
-    image: redis:7-alpine
-    container_name: fusion-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - fusion-network
+  # PostgreSQL and Redis services are defined in docker-compose.base.yml
 
 volumes:
   osmosis-data:

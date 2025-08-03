@@ -10,13 +10,13 @@ export const developmentConfig: Partial<FusionConfig> = {
   
   networks: {
     ethereum: {
-      chainId: 31337, // Hardhat local
-      name: 'Hardhat Local',
-      rpcUrl: 'http://localhost:8545',
+      chainId: 11155111, // Sepolia testnet
+      name: 'Ethereum Sepolia',
+      rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/demo',
       contracts: {
-        htlc: '0x5FbDB2315678afecb367f032d93F642f64180aa3' // First Hardhat contract
+        htlc: '0x5FbDB2315678afecb367f032d93F642f64180aa3' // Deployed contract address
       },
-      confirmations: 1,
+      confirmations: 2,
       gasConfig: {
         maxGasLimit: 8000000
       }
@@ -24,21 +24,43 @@ export const developmentConfig: Partial<FusionConfig> = {
     
     cosmos: [
       {
-        chainId: 'testing',
-        name: 'Local Test Chain',
-        rpcUrl: 'http://localhost:26657',
-        restUrl: 'http://localhost:1317',
+        chainId: 'theta-testnet-001',
+        name: 'Cosmos Hub Testnet',
+        rpcUrl: 'https://rpc.testnet.cosmos.network',
+        restUrl: 'https://rest.testnet.cosmos.network',
         addressPrefix: 'cosmos',
         coinType: 118,
-        gasPrice: '0.025utest',
+        gasPrice: '0.025uatom',
         gasLimit: 500000,
         denominations: {
-          primary: 'utest',
-          display: 'test',
+          primary: 'uatom',
+          display: 'atom',
           decimals: 6
         },
         contracts: {
           htlc: 'cosmos1test_htlc_contract'
+        },
+        ibc: {
+          channels: {},
+          timeout: 600
+        }
+      },
+      {
+        chainId: 'osmo-test-5',
+        name: 'Osmosis Testnet',
+        rpcUrl: 'https://rpc.testnet.osmosis.zone',
+        restUrl: 'https://rest.testnet.osmosis.zone',
+        addressPrefix: 'osmo',
+        coinType: 118,
+        gasPrice: '0.025uosmo',
+        gasLimit: 500000,
+        denominations: {
+          primary: 'uosmo',
+          display: 'osmo',
+          decimals: 6
+        },
+        contracts: {
+          htlc: 'osmo1test_htlc_contract'
         },
         ibc: {
           channels: {},
@@ -50,32 +72,32 @@ export const developmentConfig: Partial<FusionConfig> = {
   
   services: {
     relayer: {
-      maxRetries: 2,
-      retryDelayMs: 1000,
-      batchSize: 5,
+      maxRetries: 3,
+      retryDelayMs: 2000,
+      batchSize: 10,
       processingIntervalMs: 5000,
-      timeoutBufferSeconds: 60,
+      timeoutBufferSeconds: 120,
       concurrency: {
-        maxParallelSwaps: 10,
-        maxPendingSwaps: 50
+        maxParallelSwaps: 5,
+        maxPendingSwaps: 20
       }
     },
     
     registry: {
-      cacheTimeout: 60,
-      refreshInterval: 30,
-      maxRetries: 2,
+      cacheTimeout: 300, // 5 minutes
+      refreshInterval: 60, // 1 minute
+      maxRetries: 3,
       endpoints: {
-        chainRegistry: 'http://localhost:3001/chains',
-        ibcData: 'http://localhost:3001/ibc'
+        chainRegistry: 'https://registry.cosmos.network/chains',
+        ibcData: 'https://api.cosmos.network/ibc'
       }
     },
     
     recovery: {
       enabled: true,
-      checkInterval: 10000,
-      refundBufferSeconds: 300,
-      maxRecoveryAttempts: 3
+      checkInterval: 30000, // 30 seconds
+      refundBufferSeconds: 600, // 10 minutes
+      maxRecoveryAttempts: 5
     }
   },
   
@@ -84,61 +106,31 @@ export const developmentConfig: Partial<FusionConfig> = {
       provider: 'env' as const,
       encryption: false
     },
-    
-    encryption: {
-      algorithm: 'aes-256-gcm' as const,
-      keyDerivation: 'pbkdf2' as const,
-      iterations: 10000
+    rateLimiting: {
+      enabled: true,
+      maxRequestsPerMinute: 60,
+      maxRequestsPerHour: 1000
     },
-    
-    rateLimit: {
-      enabled: false,
-      windowMs: 60000,
-      maxRequests: 1000
-    },
-    
-    firewall: {
-      enabled: false,
-      allowedOrigins: ['*'],
-      maxConnectionsPerIP: 100
+    ddosProtection: {
+      enabled: true,
+      maxConcurrentConnections: 100,
+      blockDuration: 300 // 5 minutes
     }
   },
   
   monitoring: {
     metrics: {
       enabled: true,
-      port: 9091
+      port: 9090,
+      path: '/metrics'
     },
-    
     tracing: {
       enabled: true,
-      serviceName: 'evmore-relayer-dev',
-      sampleRate: 1.0
+      serviceName: 'evmore-relayer-dev'
     },
-    
     alerts: {
-      enabled: false,
-      channels: [],
-      thresholds: {
-        errorRate: 0.1,
-        responseTime: 5000,
-        diskUsage: 0.9,
-        memoryUsage: 0.9
-      }
-    },
-    
-    healthCheck: {
       enabled: true,
-      interval: 30000,
-      timeout: 5000,
-      endpoints: ['/health', '/ready']
+      webhookUrl: process.env.ALERT_WEBHOOK_URL
     }
-  },
-  
-  features: {
-    multiHopRouting: true,
-    automaticRecovery: true,
-    dynamicGasPrice: false,
-    experimentalFeatures: true
   }
 };

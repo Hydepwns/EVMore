@@ -126,3 +126,40 @@ export const MAX_PARTIAL_FILL_PERCENTAGE = 90;
 
 export const TRANSACTION_STORAGE_KEY = 'fusion_cosmos_transactions';
 export const MAX_STORED_TRANSACTIONS = 50;
+
+// Real-time API endpoints
+export const API_ENDPOINTS = {
+  COINGECKO: 'https://api.coingecko.com/api/v3',
+  ETHERSCAN: 'https://api.etherscan.io/api',
+  COSMOS_REST: 'https://rest.testnet.cosmos.network',
+  OSMOSIS_REST: 'https://rest.testnet.osmosis.zone',
+  RELAYER_HEALTH: 'http://localhost:3000/health',
+  RELAYER_METRICS: 'http://localhost:3000/metrics',
+} as const;
+
+// Market data cache settings
+export const MARKET_DATA_CONFIG = {
+  CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+  REFRESH_INTERVAL: 30 * 1000, // 30 seconds
+  RETRY_ATTEMPTS: 3,
+  RETRY_DELAY: 1000, // 1 second
+} as const;
+
+// Network gas price limits
+export const GAS_PRICE_LIMITS = {
+  ETHEREUM: {
+    LOW: 20, // Gwei
+    MODERATE: 50,
+    HIGH: 100,
+  },
+  POLYGON: {
+    LOW: 30,
+    MODERATE: 60,
+    HIGH: 120,
+  },
+  ARBITRUM: {
+    LOW: 0.1,
+    MODERATE: 0.2,
+    HIGH: 0.5,
+  },
+} as const;

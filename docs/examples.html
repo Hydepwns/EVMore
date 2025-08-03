@@ -515,6 +515,7 @@
                 <div class="code-block">
 <span class="highlight">import</span> { FusionCosmosClient, EthereumHTLCClient } from '@evmore/sdk';
 
+
 <span class="highlight">async function</span> performCrossChainSwap() {
   <span class="highlight">// Initialize clients</span>
   const cosmosClient = new FusionCosmosClient({
@@ -527,6 +528,7 @@
     contractAddress: '0x1234567890123456789012345678901234567890'
   });
 
+
   <span class="highlight">// Create swap parameters</span>
   const swapParams = {
     fromToken: 'ETH',
@@ -536,20 +538,24 @@
     timelock: 3600 // 1 hour
   };
 
+
   <span class="highlight">// Create HTLC on Ethereum</span>
   const htlcResult = await ethereumClient.createHTLC(swapParams);
   
   <span class="highlight">// Wait for confirmation</span>
   await ethereumClient.waitForConfirmation(htlcResult.txHash);
   
+
   <span class="highlight">// Complete swap on Cosmos</span>
   const swapResult = await cosmosClient.completeSwap({
     htlcId: htlcResult.htlcId,
     secret: htlcResult.secret
   });
 
+
   console.log('Swap completed:', swapResult);
 }
+
                 </div>
                 
                 <div class="example-links" style="margin-top: 2rem;">

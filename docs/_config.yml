@@ -1,0 +1,61 @@
+# Jekyll configuration for EVMore documentation
+title: EVMore Documentation
+description: Cross-chain swap protocol documentation
+baseurl: ""
+url: "https://evmore.com"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# Collections
+collections:
+  api:
+    output: true
+    permalink: /api/:path/
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - node_modules
+  - package.json
+  - package-lock.json
+  - yarn.lock
+  - .gitignore
+  - README.md
+
+# Include files
+include:
+  - _api
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "api"
+    values:
+      layout: "default"
+
+# Liquid settings
+liquid:
+  error_mode: strict
+
+# Kramdown settings
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# Sass settings
+sass:
+  style: compressed
+
+# Path aliases (custom plugin would be needed for this)
+# For now, we'll use relative paths 

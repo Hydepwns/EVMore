@@ -1,72 +1,70 @@
 #!/bin/bash
 
-# EVMore GitHub Pages Setup Script
-# This script helps set up GitHub Pages deployment for the hackathon demo
+# GitHub Pages Setup Script for EVMore Documentation
+# This script helps configure GitHub Pages for the documentation site
 
-echo "🚀 EVMore GitHub Pages Setup"
-echo "============================"
-echo ""
+set -e
+
+echo "🚀 Setting up GitHub Pages for EVMore Documentation"
+echo "=================================================="
 
 # Check if we're in the right directory
-if [ ! -f "docs/hackathon/index.html" ]; then
-    echo "❌ Error: Demo files not found. Please run this script from the EVMore root directory."
+if [ ! -f "docs/index.html" ]; then
+    echo "❌ Error: docs/index.html not found. Please run this script from the repository root."
     exit 1
 fi
 
-echo "✅ Demo files found:"
-ls -la docs/hackathon/
-echo ""
+# Check required files
+echo "📋 Checking required files..."
 
-# Check if workflow file exists
-if [ -f ".github/workflows/deploy-demo.yml" ]; then
-    echo "✅ CI/CD workflow configured"
-else
-    echo "❌ CI/CD workflow not found"
-    exit 1
-fi
+REQUIRED_FILES=(
+    "docs/index.html"
+    "docs/hackathon/index.html"
+    "docs/api-reference.html"
+    "docs/examples.html"
+    "CNAME"
+)
+
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        echo "✅ $file"
+    else
+        echo "❌ $file (missing)"
+        exit 1
+    fi
+done
 
 echo ""
-echo "📋 Next Steps to Enable GitHub Pages:"
-echo "====================================="
+echo "✅ All required files found!"
 echo ""
-echo "1. Open GitHub Repository Settings:"
-echo "   https://github.com/Hydepwns/EVMore/settings/pages"
+echo "📝 GitHub Pages Configuration Instructions:"
+echo "=========================================="
 echo ""
-echo "2. Configure GitHub Pages:"
-echo "   - Source: 'Deploy from a branch'"
-echo "   - Branch: 'main'"
-echo "   - Folder: '/docs'"
-echo "   - Click 'Save'"
+echo "1. Go to your GitHub repository settings"
+echo "2. Navigate to 'Pages' section"
+echo "3. Set Source to 'Deploy from a branch'"
+echo "4. Select branch: 'main'"
+echo "5. Select folder: '/docs'"
+echo "6. Click 'Save'"
 echo ""
-echo "3. Wait for deployment (usually 2-5 minutes)"
+echo "🌐 Custom Domain Configuration:"
+echo "=============================="
+echo "1. In the same Pages settings, enter custom domain: evmore.droo.foo"
+echo "2. Check 'Enforce HTTPS'"
+echo "3. Click 'Save'"
 echo ""
-echo "4. Access your documentation at:"
-echo "   - Custom Domain: https://evmore.droo.foo/"
-echo "   - Main Docs: https://evmore.droo.foo/"
-echo "   - Demo: https://evmore.droo.foo/hackathon/"
-echo "   - API Reference: https://evmore.droo.foo/api-reference.html"
+echo "📊 Expected URLs after deployment:"
+echo "================================="
+echo "- Main Site: https://evmore.droo.foo"
+echo "- Demo: https://evmore.droo.foo/hackathon/"
+echo "- API Reference: https://evmore.droo.foo/api-reference.html"
+echo "- Examples: https://evmore.droo.foo/examples.html"
+echo "- Quick Start: https://evmore.droo.foo/quick-start.html"
 echo ""
-echo "🔧 Optional: Custom Domain Setup"
-echo "================================"
-echo "1. Add CNAME record in your DNS:"
-echo "   - Name: evmore"
-echo "   - Value: hydepwns.github.io"
+echo "🔧 Workflow Configuration:"
+echo "========================="
+echo "- Documentation deployment: .github/workflows/deploy-demo.yml"
+echo "- React app deployment: DISABLED (to prevent conflicts)"
+echo "- Custom domain: evmore.droo.foo"
 echo ""
-echo "2. Configure in GitHub Pages settings:"
-echo "   - Custom domain: evmore.droo.foo"
-echo "   - Check 'Enforce HTTPS'"
-echo ""
-echo "📊 Check Deployment Status:"
-echo "==========================="
-echo "1. GitHub Actions: https://github.com/Hydepwns/EVMore/actions"
-echo "2. Pages Settings: https://github.com/Hydepwns/EVMore/settings/pages"
-echo ""
-echo "🎉 Once deployed, your documentation will be live!"
-echo ""
-echo "Demo Features:"
-echo "- Interactive cross-chain swap simulation"
-echo "- Real-time exchange rates and fees"
-echo "- Step-by-step process visualization"
-echo "- Responsive design for all devices"
-echo "- Performance optimized (< 2s load time)"
-echo "" 
+echo "✨ Setup complete! Follow the instructions above to configure GitHub Pages." 

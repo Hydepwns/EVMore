@@ -6,6 +6,7 @@ echo "========================================================"
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Get the script directory
@@ -23,12 +24,16 @@ LIBRARIES=(
   "test-utils"
 )
 
-# Create docs directory if it doesn't exist
-DOCS_DIR="$ROOT_DIR/@docs/api"
+# Create docs directory if it doesn't exist - FIXED PATH
+DOCS_DIR="$ROOT_DIR/docs/@docs/api"
 mkdir -p "$DOCS_DIR"
 
 echo -e "${YELLOW}Installing documentation tools...${NC}"
 npm install -g typedoc typedoc-plugin-markdown --silent
+
+# Track success/failure
+SUCCESS_COUNT=0
+FAILURE_COUNT=0
 
 # Generate documentation for each library
 for lib in "${LIBRARIES[@]}"; do
@@ -40,6 +45,13 @@ for lib in "${LIBRARIES[@]}"; do
   if [ -d "$LIB_DIR/src" ]; then
     # Create output directory
     mkdir -p "$OUTPUT_DIR"
+    
+    # Check if index.ts exists
+    if [ ! -f "$LIB_DIR/src/index.ts" ]; then
+      echo -e "${RED}❌ No index.ts found in $LIB_DIR/src${NC}"
+      FAILURE_COUNT=$((FAILURE_COUNT + 1))
+      continue
+    fi
     
     # Generate TypeDoc documentation
     typedoc \
@@ -55,6 +67,7 @@ for lib in "${LIBRARIES[@]}"; do
     
     if [ $? -eq 0 ]; then
       echo -e "${GREEN}✅ Generated docs for @evmore/$lib${NC}"
+      SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
       
       # Also copy any manually written API.md if it exists
       if [ -f "$LIB_DIR/API.md" ]; then
@@ -63,9 +76,11 @@ for lib in "${LIBRARIES[@]}"; do
       fi
     else
       echo -e "${RED}❌ Failed to generate docs for @evmore/$lib${NC}"
+      FAILURE_COUNT=$((FAILURE_COUNT + 1))
     fi
   else
-    echo "⚠️  No src directory found for $lib"
+    echo -e "${RED}⚠️  No src directory found for $lib${NC}"
+    FAILURE_COUNT=$((FAILURE_COUNT + 1))
   fi
 done
 
@@ -80,19 +95,19 @@ This directory contains the API documentation for all @evmore/* libraries.
 
 ### Core Libraries
 
-- [@evmore/types]($DOCS_DIR/types/README.md) - Central type system
-- [@evmore/interfaces]($DOCS_DIR/interfaces/README.md) - Service contracts and DI interfaces
-- [@evmore/errors]($DOCS_DIR/errors/README.md) - Hierarchical error system
+- [@evmore/types](./types/README.md) - Central type system
+- [@evmore/interfaces](./interfaces/README.md) - Service contracts and DI interfaces
+- [@evmore/errors](./errors/README.md) - Hierarchical error system
 
 ### Infrastructure Libraries
 
-- [@evmore/config]($DOCS_DIR/config/README.md) - Configuration management
-- [@evmore/utils]($DOCS_DIR/utils/README.md) - Common utilities and DI container
-- [@evmore/connection-pool]($DOCS_DIR/connection-pool/README.md) - RPC connection pooling
+- [@evmore/config](./config/README.md) - Configuration management
+- [@evmore/utils](./utils/README.md) - Common utilities and DI container
+- [@evmore/connection-pool](./connection-pool/README.md) - RPC connection pooling
 
 ### Development Libraries
 
-- [@evmore/test-utils]($DOCS_DIR/test-utils/README.md) - Testing utilities and mocks
+- [@evmore/test-utils](./test-utils/README.md) - Testing utilities and mocks
 
 ## Getting Started
 
@@ -169,15 +184,20 @@ These libraries form the foundation of the EVMore refactored architecture:
 
 ## Contributing
 
-See the main [CONTRIBUTING.md](../../../CONTRIBUTING.md) for guidelines.
+See the main [CONTRIBUTING.md](../../../../CONTRIBUTING.md) for guidelines.
 
 ## License
 
-See [LICENSE](../../../LICENSE) for details.
+See [LICENSE](../../../../LICENSE) for details.
 EOF
 
 echo -e "\n${GREEN}✅ Documentation generation complete!${NC}"
-echo -e "\nDocumentation generated in: $DOCS_DIR"
-echo -e "\nTo view the docs:"
+echo -e "\n📊 Summary:"
+echo -e "  ✅ Successful: $SUCCESS_COUNT"
+echo -e "  ❌ Failed: $FAILURE_COUNT"
+echo -e "\n📁 Documentation generated in: $DOCS_DIR"
+echo -e "\n🔗 To view the docs:"
 echo -e "  cd $DOCS_DIR"
 echo -e "  ls -la"
+echo -e "\n🌐 Or open in browser:"
+echo -e "  open $DOCS_DIR/README.md"

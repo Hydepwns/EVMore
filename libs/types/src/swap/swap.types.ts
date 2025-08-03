@@ -102,6 +102,13 @@ export interface SwapQuote {
   estimatedExecutionTime: number;
   slippageTolerance: number;
   deadline: number;
+  exchangeRate?: number;
+  marketData?: {
+    fromTokenPrice: number;
+    toTokenPrice: number;
+    gasPrice: number;
+    lastUpdated: number;
+  };
 }
 
 export interface CrossChainSwapParams {
