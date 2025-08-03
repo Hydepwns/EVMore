@@ -40,9 +40,6 @@ jobs:
           echo "Directory contents: $(ls -la)"
           npm install
 
-      - name: Build dependencies
-        run: npm run build:libs && npm run build:sdk
-
       - name: Build application
         working-directory: ./frontend
         run: npm run build
