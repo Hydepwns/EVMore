@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVMore Protocol Design</title>
+    <meta name="description" content="Protocol design documentation for EVMore cross-chain HTLC architecture">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --code-bg: #f3f4f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            padding: 3rem 0;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        
+        .back-link:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .section p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .code-block {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .architecture-diagram {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .architecture-diagram pre {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            text-align: left;
+            overflow-x: auto;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .feature-card h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .feature-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-card li {
+            padding: 0.25rem 0;
+            color: var(--text-secondary);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .feature-card li:before {
+            content: "→";
+            color: var(--primary-color);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🏗️ EVMore Protocol Design</h1>
+            <p>Cross-chain architecture and protocol design for EVMore HTLC implementation</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="content">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Documentation
+            </a>
+            
+            <div class="section">
+                <h2>Cross-Chain Architecture</h2>
+                
+                <h3>Overview</h3>
+                <p>EVMore implements atomic cross-chain swaps between Ethereum and Cosmos chains using Hash Time Lock Contracts (HTLCs), Inter-Blockchain Communication (IBC), and multi-hop routing for optimal liquidity access.</p>
+                
+                <h3>Core Components</h3>
+                <div class="architecture-diagram">
+                    <pre>┌─ Ethereum HTLC ─┐    ┌─ IBC Relayer ─┐    ┌─ Cosmos Chains ─┐
+│  Lock Funds     │◄──►│  Monitor      │◄──►│  Execute Swap   │
+│  Time Lock      │    │  Relay        │    │  Route Forward  │
+│  Secret Hash    │    │  Route Disco  │    │  DEX Trading    │
+└─────────────────┘     └───────────────┘    └─────────────────┘</pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Multi-Hop IBC Routing</h2>
+                
+                <h3>Route Discovery</h3>
+                <div class="code-block">
+                    <pre><code>interface SwapRoute {
+  hops: Array&lt;{
+    chainId: string;
+    channelId: string;
+    portId: string;
+    timelock: number;
+  }&gt;;
+  totalFee: string;
+  estimatedDuration: number;
+}
+
+class RouteDiscovery {
+  async findOptimalRoute(
+    from: string,
+    to: string,
+    amount: string
+  ): Promise&lt;SwapRoute&gt; {
+    // 1. Query Chain Registry for available paths
+    const paths = await this.chainRegistry.getPaths(from, to);
+    
+    // 2. Calculate fees and liquidity for each path
+    const routesWithCosts = await Promise.all(
+      paths.map(path =&gt; this.calculateRouteCost(path, amount))
+    );
+    
+    // 3. Select optimal route based on cost and reliability
+    return this.selectOptimalRoute(routesWithCosts);
+  }
+}</code></pre>
+                </div>
+                
+                <h3>Packet Forward Middleware</h3>
+                <div class="code-block">
+                    <pre><code>interface PacketForwardMetadata {
+  receiver: string;
+  port: string;
+  channel: string;
+  timeout: number;
+  retries: number;
+  next?: PacketForwardMetadata;
+}
+
+// Multi-hop packet forwarding
+const forwardMemo = {
+  forward: {
+    receiver: "osmo1...",
+    port: "transfer",
+    channel: "channel-0",
+    timeout: 1800, // 30 minutes
+    next: {
+      receiver: "juno1...",
+      port: "wasm.juno1contractaddr",
+      channel: "channel-47",
+      timeout: 1200 // 20 minutes
+    }
+  }
+};</code></pre>
+                </div>
+                
+                <h3>Timelock Cascade</h3>
+                <div class="code-block">
+                    <pre><code>class TimelockManager {
+  calculateTimelocks(hops: number): number[] {
+    const baseTimelock = 48 * 3600; // 48 hours for Ethereum
+    const timelocks = [];
+    
+    for (let i = 0; i &lt; hops; i++) {
+      // Each hop gets progressively shorter timelock
+      const timelock = baseTimelock - (i * 12 * 3600); // 12 hour reduction
+      timelocks.push(Math.max(timelock, 6 * 3600)); // Minimum 6 hours
+    }
+    
+    return timelocks;
+  }
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Key Protocol Features</h2>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🔗 Multi-Hop IBC Routing</h4>
+                        <p>Dynamic route discovery and packet forwarding across multiple Cosmos chains</p>
+                        <ul>
+                            <li>Chain Registry integration</li>
+                            <li>Optimal path selection</li>
+                            <li>Automatic packet forwarding</li>
+                            <li>Cascading timelocks</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🔒 MEV Protection</h4>
+                        <p>Commit-reveal schemes and atomic execution to prevent front-running</p>
+                        <ul>
+                            <li>Secret hash commitments</li>
+                            <li>Atomic swap execution</li>
+                            <li>Front-running protection</li>
+                            <li>Fair ordering guarantees</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>💧 DEX Integration</h4>
+                        <p>Seamless integration with DEX protocols for optimal liquidity access</p>
+                        <ul>
+                            <li>Osmosis AMM integration</li>
+                            <li>Dynamic route optimization</li>
+                            <li>Slippage protection</li>
+                            <li>Liquidity aggregation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>⚡ Packet Handling</h4>
+                        <p>Robust packet acknowledgment and timeout handling</p>
+                        <ul>
+                            <li>Automatic retries</li>
+                            <li>Timeout management</li>
+                            <li>Error recovery</li>
+                            <li>State synchronization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Security Architecture</h2>
+                
+                <h3>HTLC Security Model</h3>
+                <p>The protocol uses Hash Time Lock Contracts (HTLCs) to ensure atomic cross-chain swaps with cryptographic guarantees:</p>
+                
+                <ul>
+                    <li><strong>Hash Lock:</strong> Funds are locked with a cryptographic hash that requires knowledge of the preimage to unlock</li>
+                    <li><strong>Time Lock:</strong> Automatic refund mechanism if the swap is not completed within the specified timeframe</li>
+                    <li><strong>Atomic Execution:</strong> Either both parties receive their funds or neither does</li>
+                    <li><strong>Cross-Chain Verification:</strong> IBC packets provide cryptographic proof of state changes</li>
+                </ul>
+                
+                <h3>MEV Protection Mechanisms</h3>
+                <p>To prevent Maximum Extractable Value (MEV) attacks:</p>
+                
+                <ul>
+                    <li><strong>Commit-Reveal:</strong> Transaction ordering is determined by commitment phase</li>
+                    <li><strong>Secret Sharing:</strong> Preimages are shared only after commitments are made</li>
+                    <li><strong>Atomic Execution:</strong> All operations execute atomically or not at all</li>
+                    <li><strong>Fair Ordering:</strong> Protocol-level ordering prevents front-running</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Protocol Flow</h2>
+                
+                <h3>Standard Swap Flow</h3>
+                <ol>
+                    <li><strong>Route Discovery:</strong> Find optimal path through available IBC channels</li>
+                    <li><strong>Quote Generation:</strong> Calculate fees, timelocks, and expected output</li>
+                    <li><strong>Commitment Phase:</strong> User commits to swap with hash lock</li>
+                    <li><strong>Fund Locking:</strong> Source chain HTLC locks funds</li>
+                    <li><strong>IBC Relay:</strong> Packet forwarded through intermediate chains</li>
+                    <li><strong>Destination Execution:</strong> Target chain executes swap or DEX trade</li>
+                    <li><strong>Preimage Reveal:</strong> Secret revealed to unlock funds</li>
+                    <li><strong>Completion:</strong> All parties receive their funds</li>
+                </ol>
+                
+                <h3>Error Handling</h3>
+                <ul>
+                    <li><strong>Timeout Recovery:</strong> Automatic refund if timelock expires</li>
+                    <li><strong>Packet Retries:</strong> Automatic retry of failed IBC packets</li>
+                    <li><strong>State Reconciliation:</strong> Cross-chain state verification</li>
+                    <li><strong>Emergency Procedures:</strong> Manual intervention capabilities</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

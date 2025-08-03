@@ -149,6 +149,11 @@
                         <div class="demo-status">
                             <span class="status-indicator online"></span>
                             <span>Testnet Active</span>
+                            <span class="network-status" id="network-status">🟢 Low Congestion</span>
+                            <span class="market-status" id="market-status">📊 Live Prices</span>
+                            <button class="refresh-btn" id="refresh-prices" title="Refresh Prices">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="swap-interface">
@@ -183,10 +188,22 @@
                             <div class="detail-row">
                                 <span>Network Fee:</span>
                                 <span id="network-fee">~$2.50</span>
+                                <span class="fee-breakdown" id="fee-breakdown">(Ethereum: $1.20, Cosmos: $0.80, Relayer: $0.50)</span>
                             </div>
                             <div class="detail-row">
                                 <span>Estimated Time:</span>
                                 <span id="estimated-time">~30 seconds</span>
+                                <span class="time-breakdown" id="time-breakdown">(HTLC: 15s, Relay: 10s, Confirm: 5s)</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Success Rate:</span>
+                                <span id="success-rate">99.9%</span>
+                                <span class="rate-indicator" id="rate-indicator">🟢 Excellent</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Gas Price:</span>
+                                <span id="gas-price">25 Gwei</span>
+                                <span class="gas-status" id="gas-status">🟡 Moderate</span>
                             </div>
                         </div>
                         <button class="btn btn-primary btn-large" id="swap-button">

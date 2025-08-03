@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVMore Quick Start Guide</title>
+    <meta name="description" content="Quick start guide for EVMore cross-chain HTLC protocol">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --code-bg: #f3f4f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            padding: 3rem 0;
+        }
+        
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .role-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        
+        .role-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .role-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .role-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .role-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .role-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        
+        .role-links a:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .section p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .code-block {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .architecture-diagram {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .architecture-diagram pre {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            text-align: left;
+            overflow-x: auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .feature-card h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-card li {
+            padding: 0.25rem 0;
+            color: var(--text-secondary);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .feature-card li:before {
+            content: "✓";
+            color: var(--secondary-color);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        
+        .back-link:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .role-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🚀 EVMore Quick Start Guide</h1>
+            <p>Get started with EVMore cross-chain HTLC protocol based on your role</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="content">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Documentation
+            </a>
+            
+            <div class="section">
+                <h2>Choose Your Path</h2>
+                <p>Select the documentation path that best fits your role and responsibilities:</p>
+                
+                <div class="role-grid">
+                    <div class="role-card">
+                        <div class="role-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3>Developer</h3>
+                        <p>Engineers and integration teams building with EVMore</p>
+                        <div class="role-links">
+                            <a href="DEVELOPMENT_GUIDE.html">
+                                <i class="fas fa-book"></i>
+                                Development Guide
+                            </a>
+                            <a href="PROTOCOL_DESIGN.html">
+                                <i class="fas fa-architecture"></i>
+                                Protocol Design
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="role-card">
+                        <div class="role-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3>DevOps/SRE</h3>
+                        <p>Operations teams managing EVMore infrastructure</p>
+                        <div class="role-links">
+                            <a href="OPERATIONS_GUIDE.html">
+                                <i class="fas fa-server"></i>
+                                Operations Guide
+                            </a>
+                            <a href="DEVELOPMENT_GUIDE.html">
+                                <i class="fas fa-code"></i>
+                                Development Guide
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="role-card">
+                        <div class="role-icon">
+                            <i class="fas fa-architecture"></i>
+                        </div>
+                        <h3>Architect</h3>
+                        <p>Protocol engineers and system architects</p>
+                        <div class="role-links">
+                            <a href="PROTOCOL_DESIGN.html">
+                                <i class="fas fa-sitemap"></i>
+                                Protocol Design
+                            </a>
+                            <a href="OPERATIONS_GUIDE.html">
+                                <i class="fas fa-cogs"></i>
+                                Operations Guide
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="role-card">
+                        <div class="role-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Product Manager</h3>
+                        <p>Product teams understanding EVMore capabilities</p>
+                        <div class="role-links">
+                            <a href="PROTOCOL_DESIGN.html">
+                                <i class="fas fa-lightbulb"></i>
+                                Protocol Design
+                            </a>
+                            <a href="DEVELOPMENT_GUIDE.html">
+                                <i class="fas fa-code"></i>
+                                Development Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Getting Started</h2>
+                
+                <h3>Local Development</h3>
+                <div class="code-block">
+                    <pre><code>git clone &lt;repository&gt;
+cd EVMore
+npm install
+npm run build
+npm run dev:relayer</code></pre>
+                </div>
+                
+                <h3>Production Deployment</h3>
+                <div class="code-block">
+                    <pre><code>docker-compose -f docker-compose.yml up -d
+curl http://localhost:3000/health</code></pre>
+                </div>
+                
+                <h3>Basic Integration</h3>
+                <div class="code-block">
+                    <pre><code>import { EvmoreClient } from '@evmore/sdk';
+
+const client = new EvmoreClient(config);
+const quote = await client.getSwapQuote(swapParams);</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Key Features</h2>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>🎯 Production Ready</h4>
+                        <ul>
+                            <li>Comprehensive test coverage</li>
+                            <li>Optimized bundles for web deployment</li>
+                            <li>Enterprise-grade libraries</li>
+                            <li>Full TypeScript support</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🔧 Developer Experience</h4>
+                        <ul>
+                            <li>Dependency Injection architecture</li>
+                            <li>Connection Pooling with health monitoring</li>
+                            <li>Backward Compatibility via adapters</li>
+                            <li>Type Safety with TypeScript</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>📊 Operations Excellence</h4>
+                        <ul>
+                            <li>Prometheus Metrics monitoring</li>
+                            <li>OpenTelemetry Tracing</li>
+                            <li>Secret Management support</li>
+                            <li>Health Checks and admin controls</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🌐 Protocol Innovation</h4>
+                        <ul>
+                            <li>Multi-hop IBC Routing</li>
+                            <li>MEV Protection schemes</li>
+                            <li>Dynamic Route Discovery</li>
+                            <li>DEX Integration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Architecture Overview</h2>
+                <div class="architecture-diagram">
+                    <pre>┌─ @evmore/* Libraries ─┐    ┌─ Core Components ─┐    ┌─ External Systems ─┐
+│  types, interfaces    │◄──►│  SDK              │◄──►│  Ethereum         │
+│  errors, config       │    │  Relayer          │    │  Cosmos Chains    │
+│  utils, test-utils    │    │  Contracts        │    │  DEX Protocols    │
+│  connection-pool      │    │  Test Suites      │    │  Chain Registry   │
+└───────────────────────┘    └───────────────────┘    └───────────────────┘</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

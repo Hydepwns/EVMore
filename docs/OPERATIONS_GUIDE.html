@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVMore Operations Guide</title>
+    <meta name="description" content="Operations guide for EVMore cross-chain HTLC protocol deployment and maintenance">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --warning-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --code-bg: #f3f4f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            padding: 3rem 0;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        
+        .back-link:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .section h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        .section p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .code-block {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-block code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .warning-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: var(--warning-color);
+        }
+        
+        .warning-box h4 {
+            color: var(--warning-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #1e40af;
+        }
+        
+        .info-box h4 {
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .metric-card h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .metric-card code {
+            background: var(--code-bg);
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            display: block;
+            margin: 0.5rem 0;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        tr:hover {
+            background: var(--bg-secondary);
+        }
+        
+        .command-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .command-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .command-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .command-list code {
+            background: var(--code-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🔧 EVMore Operations Guide</h1>
+            <p>Complete operational documentation for running and maintaining EVMore infrastructure</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="content">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Documentation
+            </a>
+            
+            <div class="section">
+                <h2>Production Deployment</h2>
+                
+                <h3>Prerequisites</h3>
+                <ul>
+                    <li>Node.js 18+</li>
+                    <li>Docker & Docker Compose</li>
+                    <li>Access to RPC endpoints</li>
+                    <li>Environment secrets configured</li>
+                </ul>
+                
+                <h3>Deployment Steps</h3>
+                <div class="code-block">
+                    <pre><code># 1. Build production bundles
+npm run build
+
+# 2. Deploy using Docker
+docker-compose -f docker-compose.yml up -d
+
+# 3. Verify services
+docker-compose ps
+docker-compose logs relayer</code></pre>
+                </div>
+                
+                <h3>Environment Configuration</h3>
+                <div class="code-block">
+                    <pre><code># docker-compose.yml
+version: '3.8'
+services:
+  relayer:
+    image: evmore/relayer:latest
+    environment:
+      - FUSION_ENV=production
+      - ETHEREUM_RPC_URL=${ETHEREUM_RPC_URL}
+      - COSMOS_RPC_URL=${COSMOS_RPC_URL}
+      - LOG_LEVEL=info
+    volumes:
+      - ./config:/app/config:ro
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}</code></pre>
+                </div>
+                
+                <h3>Health Checks</h3>
+                <div class="code-block">
+                    <pre><code># Service health
+curl http://localhost:3000/health
+
+# Metrics endpoint
+curl http://localhost:3000/metrics
+
+# Pool status
+curl http://localhost:3000/admin/pools/status</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Monitoring & Observability</h2>
+                
+                <h3>Prometheus Metrics</h3>
+                <div class="code-block">
+                    <pre><code># prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'evmore-relayer'
+    static_configs:
+      - targets: ['relayer:3000']
+    metrics_path: /metrics
+    scrape_interval: 10s</code></pre>
+                </div>
+                
+                <h3>Key Metrics to Monitor</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h4>Connection Pool Metrics</h4>
+                        <code>evmore_pool_connections_total{pool="ethereum"}</code>
+                        <code>evmore_pool_connections_active{pool="ethereum"}</code>
+                        <code>evmore_pool_connections_idle{pool="ethereum"}</code>
+                        <code>evmore_pool_acquire_duration_seconds</code>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Relay Performance</h4>
+                        <code>evmore_relay_swaps_total{status="completed"}</code>
+                        <code>evmore_relay_swaps_total{status="failed"}</code>
+                        <code>evmore_relay_duration_seconds</code>
+                        <code>evmore_relay_queue_size</code>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>System Health</h4>
+                        <code>evmore_health_status{service="monitor"}</code>
+                        <code>evmore_health_status{service="relayer"}</code>
+                        <code>process_cpu_seconds_total</code>
+                        <code>nodejs_heap_size_used_bytes</code>
+                    </div>
+                </div>
+                
+                <h3>Grafana Dashboards</h3>
+                <div class="code-block">
+                    <pre><code>{
+  "dashboard": {
+    "title": "EVMore Operations",
+    "panels": [
+      {
+        "title": "Swap Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(evmore_relay_swaps_total{status=\"completed\"}[5m]) / rate(evmore_relay_swaps_total[5m]) * 100"
+          }
+        ]
+      },
+      {
+        "title": "Connection Pool Utilization",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "evmore_pool_connections_active / evmore_pool_connections_total * 100"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+                
+                <h3>OpenTelemetry Tracing</h3>
+                <div class="code-block">
+                    <pre><code>import { trace } from '@opentelemetry/api';
+import { NodeSDK } from '@opentelemetry/auto-instrumentations-node';
+
+const sdk = new NodeSDK({
+  serviceName: 'evmore-relayer',
+  traceExporter: new JaegerExporter({
+    endpoint: 'http://jaeger:14268/api/traces'
+  })
+});
+
+sdk.start();</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Administrative Controls</h2>
+                
+                <h3>Admin API Endpoints</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Method</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/admin/pools/status</code></td>
+                                <td>GET</td>
+                                <td>Pool statistics</td>
+                            </tr>
+                            <tr>
+                                <td><code>/admin/pools/drain</code></td>
+                                <td>POST</td>
+                                <td>Graceful shutdown</td>
+                            </tr>
+                            <tr>
+                                <td><code>/admin/pools/refresh</code></td>
+                                <td>POST</td>
+                                <td>Refresh connections</td>
+                            </tr>
+                            <tr>
+                                <td><code>/admin/services/pause</code></td>
+                                <td>POST</td>
+                                <td>Pause processing</td>
+                            </tr>
+                            <tr>
+                                <td><code>/admin/services/resume</code></td>
+                                <td>POST</td>
+                                <td>Resume processing</td>
+                            </tr>
+                            <tr>
+                                <td><code>/admin/services/status</code></td>
+                                <td>GET</td>
+                                <td>Service status</td>
+                            </tr>
+                            <tr>
+                                <td><code>/admin/config</code></td>
+                                <td>GET</td>
+                                <td>Current configuration</td>
+                            </tr>
+                            <tr>
+                                <td><code>/admin/config/reload</code></td>
+                                <td>POST</td>
+                                <td>Reload configuration</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>Emergency Procedures</h3>
+                <div class="warning-box">
+                    <h4>⚠️ Emergency Shutdown Procedure</h4>
+                    <p>Follow these steps in order for emergency situations:</p>
+                </div>
+                
+                <div class="code-block">
+                    <pre><code># 1. Pause all processing
+curl -X POST http://localhost:3000/admin/services/pause
+
+# 2. Drain connection pools
+curl -X POST http://localhost:3000/admin/pools/drain
+
+# 3. Check pending operations
+curl http://localhost:3000/admin/swaps/pending
+
+# 4. Emergency shutdown
+docker-compose stop relayer</code></pre>
+                </div>
+                
+                <h3>Backup & Recovery</h3>
+                <div class="code-block">
+                    <pre><code># Database backup
+pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
+
+# Redis backup
+redis-cli --rdb dump-$(date +%Y%m%d).rdb
+
+# Configuration backup
+cp -r config/ backup/config-$(date +%Y%m%d)/</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Secrets Management</h2>
+                
+                <h3>1Password Integration</h3>
+                <div class="code-block">
+                    <pre><code>import { OnePasswordSecretsProvider } from '../relayer/src/secrets/onepassword-secrets-provider';
+
+const secretsProvider = new OnePasswordSecretsProvider({
+  serviceAccountToken: process.env.OP_SERVICE_ACCOUNT_TOKEN,
+  vault: 'evmore-production'
+});
+
+const privateKey = await secretsProvider.getSecret('ethereum-private-key');</code></pre>
+                </div>
+                
+                <h3>AWS Secrets Manager</h3>
+                <div class="code-block">
+                    <pre><code>import { AWSSecretsProvider } from '../relayer/src/secrets/aws-secrets-provider';
+
+const secretsProvider = new AWSSecretsProvider({
+  region: 'us-east-1',
+  secretPrefix: 'evmore/'
+});
+
+const config = await secretsProvider.getSecrets([
+  'ethereum-private-key',
+  'cosmos-mnemonic',
+  'database-password'
+]);</code></pre>
+                </div>
+                
+                <h3>HashiCorp Vault</h3>
+                <div class="code-block">
+                    <pre><code>import { VaultSecretsProvider } from '../relayer/src/secrets/vault-secrets-provider';
+
+const secretsProvider = new VaultSecretsProvider({
+  endpoint: 'https://vault.company.com',
+  token: process.env.VAULT_TOKEN,
+  mountPath: 'secret/evmore'
+});</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Performance Tuning</h2>
+                
+                <h3>Connection Pool Optimization</h3>
+                <div class="code-block">
+                    <pre><code>// Production connection pool settings
+const productionConfig = {
+  ethereum: {
+    maxConnections: 50,        // Based on Infura/Alchemy limits
+    minConnections: 10,        // Always ready connections
+    acquireTimeout: 30000,     // 30s max wait
+    healthCheckInterval: 60000, // Check every minute
+    retryDelay: 1000          // 1s between retries
+  },
+  cosmos: {
+    maxConnections: 20,
+    minConnections: 5,
+    acquireTimeout: 15000,
+    healthCheckInterval: 60000
+  }
+};</code></pre>
+                </div>
+                
+                <h3>Memory Management</h3>
+                <div class="code-block">
+                    <pre><code>// Enable heap monitoring
+const heapMonitor = setInterval(() => {
+  const usage = process.memoryUsage();
+  if (usage.heapUsed > 500 * 1024 * 1024) { // 500MB
+    logger.warn('High memory usage detected', usage);
+  }
+}, 30000);
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  clearInterval(heapMonitor);
+  await container.dispose();
+  process.exit(0);
+});</code></pre>
+                </div>
+                
+                <h3>Database Optimization</h3>
+                <div class="code-block">
+                    <pre><code>-- Index for performance
+CREATE INDEX idx_swaps_status ON swaps(status);
+CREATE INDEX idx_swaps_created_at ON swaps(created_at);
+CREATE INDEX idx_swaps_chain ON swaps(from_chain, to_chain);
+
+-- Cleanup old records
+DELETE FROM swaps WHERE created_at < NOW() - INTERVAL '30 days';</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Security Hardening</h2>
+                
+                <h3>Network Security</h3>
+                <ul>
+                    <li>Allow port 3000 from load balancer only</li>
+                    <li>Allow port 9090 from monitoring network only</li>
+                    <li>Block all other incoming traffic</li>
+                    <li>Allow outbound to RPC endpoints only</li>
+                </ul>
+                
+                <h3>Container Security</h3>
+                <div class="code-block">
+                    <pre><code># Use non-root user
+USER node
+
+# Read-only filesystem
+RUN chmod -R 555 /app
+VOLUME ["/tmp"]
+
+# Security scanning
+RUN npm audit --audit-level moderate</code></pre>
+                </div>
+                
+                <h3>Secrets Security</h3>
+                <div class="warning-box">
+                    <h4>⚠️ Security Best Practices</h4>
+                    <ul>
+                        <li>Never log secrets or private keys</li>
+                        <li>Use environment variables or secret managers</li>
+                        <li>Rotate secrets regularly</li>
+                        <li>Enable secret scanning in CI/CD</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Troubleshooting</h2>
+                
+                <h3>Common Issues</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Issue</th>
+                                <th>Solution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>High Memory Usage</strong></td>
+                                <td>Check for connection leaks, enable heap profiling</td>
+                            </tr>
+                            <tr>
+                                <td><strong>RPC Rate Limits</strong></td>
+                                <td>Tune connection pool size and request rates</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Database Locks</strong></td>
+                                <td>Monitor long-running queries and connection counts</td>
+                            </tr>
+                            <tr>
+                                <td><strong>IBC Timeouts</strong></td>
+                                <td>Check chain connectivity and packet acknowledgments</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>Debug Mode</h3>
+                <div class="code-block">
+                    <pre><code># Enable debug logging
+export LOG_LEVEL=debug
+export ENABLE_TRACING=true
+
+# Restart services
+docker-compose restart relayer</code></pre>
+                </div>
+                
+                <h3>Log Analysis</h3>
+                <div class="code-block">
+                    <pre><code># Error rate
+docker logs relayer 2>&1 | grep ERROR | wc -l
+
+# Performance tracking
+docker logs relayer 2>&1 | grep "swap_duration" | tail -100
+
+# Memory patterns
+docker stats relayer --no-stream</code></pre>
+                </div>
+                
+                <h3>Emergency Contacts</h3>
+                <div class="info-box">
+                    <h4>📞 Emergency Contacts</h4>
+                    <ul>
+                        <li><strong>On-call Engineer:</strong> [Slack channel or phone]</li>
+                        <li><strong>Infrastructure Team:</strong> [Contact details]</li>
+                        <li><strong>Security Team:</strong> [Contact for incidents]</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
