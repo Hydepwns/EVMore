@@ -1,15 +1,26 @@
-// import { FusionCosmosClient } from '@1inch/fusion-cosmos-sdk';
+// import { EvmoreClient } from '@evmore/sdk';
 import type { SwapParams, SwapTransaction, PartialFillOrder } from '../types';
 import { TRANSACTION_STORAGE_KEY, MAX_STORED_TRANSACTIONS } from '../utils/constants';
 
 // Initialize the SDK client
-// TODO: Use actual SDK client when implementing real swap functionality
-// const client = new FusionCosmosClient({
+// Note: Use actual SDK client when implementing real swap functionality
+// const client = new EvmoreClient({
 //   relayerUrl: import.meta.env.VITE_RELAYER_URL || 'http://localhost:3000',
 // });
 
+// SDK parameter interface
+interface SDKSwapParams {
+  fromChain: string;
+  toChain: string;
+  fromToken: string;
+  toToken: string;
+  amount: string;
+  fromAddress: string;
+  toAddress: string;
+}
+
 // Convert frontend swap params to SDK format
-function convertToSDKParams(params: SwapParams): any {
+function convertToSDKParams(params: SwapParams): SDKSwapParams {
   return {
     fromChain: params.fromChain.chainId.toString(),
     toChain: params.toChain.chainId.toString(),
