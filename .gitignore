@@ -103,4 +103,4 @@ pnpm-lock.yaml
 .yarn/cache/
 .yarn/unplugged/
 .yarn/build-state.yml
-.yarn/install-state.gz
+.yarn/install-state.gz.turbo/
