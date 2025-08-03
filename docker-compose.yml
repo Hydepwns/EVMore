@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # Local Ethereum node (Hardhat)
+  ethereum:
+    image: ethereum/client-go:latest
+    container_name: fusion-ethereum
+    ports:
+      - "8545:8545"
+      - "8546:8546"
+    command: |
+      --dev 
+      --http 
+      --http.addr 0.0.0.0 
+      --http.port 8545 
+      --http.api eth,net,web3,personal 
+      --http.corsdomain "*" 
+      --ws 
+      --ws.addr 0.0.0.0 
+      --ws.port 8546 
+      --ws.api eth,net,web3
+    networks:
+      - fusion-network
+
+  # Local Osmosis node
+  osmosis:
+    image: osmolabs/osmosis:latest
+    container_name: fusion-osmosis
+    ports:
+      - "26657:26657"  # RPC
+      - "1317:1317"    # REST
+      - "9090:9090"    # gRPC
+    environment:
+      - CHAIN_ID=localosmosis
+      - MONIKER=localosmosis
+    volumes:
+      - osmosis-data:/root/.osmosisd
+    networks:
+      - fusion-network
+
+  # Cosmos Hub node (for testing multi-hop)
+  cosmoshub:
+    image: cosmoshub/gaia:latest
+    container_name: fusion-cosmoshub
+    ports:
+      - "26658:26657"  # RPC
+      - "1318:1317"    # REST
+      - "9091:9090"    # gRPC
+    environment:
+      - CHAIN_ID=localcosmos
+      - MONIKER=localcosmos
+    volumes:
+      - cosmos-data:/root/.gaia
+    networks:
+      - fusion-network
+
+  # Relayer service
+  relayer:
+    build:
+      context: ./relayer
+      dockerfile: Dockerfile
+    container_name: fusion-relayer
+    depends_on:
+      - ethereum
+      - osmosis
+      - cosmoshub
+      - postgres
+      - redis
+    environment:
+      - NODE_ENV=development
+      # Primary RPC endpoints
+      - ETHEREUM_RPC_URL=http://ethereum:8545
+      - ETHEREUM_WS_URL=ws://ethereum:8546
+      - COSMOS_RPC_URL=http://osmosis:26657
+      # Connection pool configuration
+      - ETHEREUM_BACKUP_RPC_URLS=
+      - COSMOS_BACKUP_RPC_URLS=http://cosmoshub:26657
+      - POOL_MAX_CONNECTIONS=10
+      - POOL_MIN_CONNECTIONS=2
+      - POOL_HEALTH_CHECK_INTERVAL=30000
+      - POOL_CIRCUIT_BREAKER_THRESHOLD=5
+      - POOL_CIRCUIT_BREAKER_TIMEOUT=60000
+      # Database configuration
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=fusion
+      - POSTGRES_PASSWORD=fusion123
+      - POSTGRES_DB=fusion_relayer
+      # Redis configuration
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Metrics
+      - METRICS_PORT=9090
+      - METRICS_HOST=0.0.0.0
+    ports:
+      - "3000:3000"   # API
+      - "9090:9090"   # Metrics
+    volumes:
+      - ./relayer:/app
+      - /app/node_modules
+    networks:
+      - fusion-network
+
+  # PostgreSQL for relayer state
+  postgres:
+    image: postgres:15-alpine
+    container_name: fusion-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=fusion
+      - POSTGRES_PASSWORD=fusion123
+      - POSTGRES_DB=fusion_relayer
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - fusion-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: fusion-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - fusion-network
+
+volumes:
+  osmosis-data:
+  cosmos-data:
+  postgres-data:
+
+networks:
+  fusion-network:
+    driver: bridge

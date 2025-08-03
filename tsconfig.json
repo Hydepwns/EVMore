@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@evmore/types": ["libs/types/dist"],
+      "@evmore/config": ["libs/config/dist"],
+      "@evmore/utils": ["libs/utils/dist"],
+      "@evmore/errors": ["libs/errors/dist"],
+      "@evmore/interfaces": ["libs/interfaces/dist"],
+      "@evmore/ibc": ["libs/ibc/dist"],
+      "@evmore/connection-pool": ["libs/connection-pool/dist"],
+      "@evmore/test-utils": ["libs/test-utils/dist"]
+    }
+  },
+  "include": [
+    "libs/*/src/**/*",
+    "relayer/src/**/*",
+    "sdk/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "contracts"
+  ]
+}

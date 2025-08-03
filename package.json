@@ -1,0 +1,74 @@
+{
+  "name": "evmore",
+  "version": "0.1.0",
+  "description": "Cross-chain atomic swap protocol between Ethereum and Cosmos ecosystem",
+  "private": true,
+  "workspaces": [
+    "libs/*",
+    "relayer",
+    "sdk",
+    "contracts/ethereum"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "build:libs": "turbo run build --filter='libs/*'",
+    "build:contracts": "npm run build:ethereum && npm run build:cosmwasm",
+    "build:ethereum": "cd contracts/ethereum && npx hardhat compile",
+    "build:cosmwasm": "cd contracts/cosmwasm && ./build.sh",
+    "build:relayer": "turbo run build --filter=relayer",
+    "build:sdk": "turbo run build --filter=sdk",
+    "test": "turbo run test",
+    "test:libs": "turbo run test --filter='libs/*'",
+    "test:contracts": "npm run test:ethereum && npm run test:cosmwasm",
+    "test:ethereum": "cd contracts/ethereum && npx hardhat test",
+    "test:cosmwasm": "cd contracts/cosmwasm && cargo test",
+    "test:relayer": "turbo run test --filter=relayer",
+    "test:sdk": "turbo run test --filter=sdk",
+    "test:integration": "cd tests/integration && npm test",
+    "test:e2e": "cd tests/e2e && npm test",
+    "test:architecture": "cd tests && ./run-architecture-tests.sh",
+    "test:architecture:validation": "cd tests && npx jest --config=jest.config.architecture.js --testNamePattern='Architecture Validation'",
+    "test:architecture:migration": "cd tests && npx jest --config=jest.config.architecture.js --testNamePattern='Migration Validation'",
+    "test:architecture:performance": "cd tests && node --expose-gc ./node_modules/.bin/jest --config=jest.config.architecture.js --testNamePattern='Performance Benchmarks'",
+    "dev:relayer": "cd relayer && npm run dev",
+    "deploy:local": "npm run deploy:ethereum:local && npm run deploy:cosmwasm:local",
+    "deploy:ethereum:local": "cd contracts/ethereum && npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:cosmwasm:local": "cd contracts/cosmwasm && ./scripts/deploy-local.sh",
+    "clean": "turbo run clean && npm run clean:contracts",
+    "clean:contracts": "cd contracts/ethereum && npx hardhat clean",
+    "lint": "turbo run lint && npm run lint:contracts",
+    "lint:contracts": "cd contracts/ethereum && npx solhint 'contracts/**/*.sol'",
+    "format": "turbo run format",
+    "config:validate": "node -e \"require('./shared/config/fusion-config').getConfig(); console.log('Configuration is valid')\"",
+    "config:show": "node -e \"console.log(JSON.stringify(require('./shared/config/fusion-config').getConfig(), null, 2))\"",
+    "docs:generate": "./scripts/generate-api-docs.sh",
+    "docs:libs": "npm run docs:generate"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0",
+    "turbo": "^1.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/1inch-fusion-cosmos.git"
+  },
+  "keywords": [
+    "1inch",
+    "fusion",
+    "cosmos",
+    "ibc",
+    "cross-chain",
+    "atomic-swap",
+    "defi"
+  ],
+  "author": "1inch Fusion+ Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/1inch-fusion-cosmos/issues"
+  },
+  "homepage": "https://github.com/yourusername/1inch-fusion-cosmos#readme"
+}

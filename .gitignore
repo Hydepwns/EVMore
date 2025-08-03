@@ -1,0 +1,106 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Production builds
+dist/
+build/
+out/
+target/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.claude/
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Hardhat
+contracts/ethereum/artifacts/
+contracts/ethereum/cache/
+contracts/ethereum/typechain/
+contracts/ethereum/typechain-types/
+
+# CosmWasm
+contracts/cosmwasm/target/
+contracts/cosmwasm/Cargo.lock
+contracts/cosmwasm/artifacts/
+*.wasm
+
+# Local blockchain data
+.local-osmosis/
+.local-ethereum/
+chain-data/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Documentation build
+docs/_build/
+docs/.docusaurus/
+
+# Package files
+*.tgz
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Miscellaneous
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
