@@ -106,15 +106,38 @@ export const developmentConfig: Partial<FusionConfig> = {
       provider: 'env' as const,
       encryption: false
     },
-    rateLimiting: {
+    encryption: {
+      algorithm: 'aes-256-gcm',
+      keyDerivation: 'pbkdf2',
+      iterations: 100000
+    },
+    rateLimit: {
       enabled: true,
-      maxRequestsPerMinute: 60,
-      maxRequestsPerHour: 1000
+      windowMs: 60000,
+      maxRequests: 60,
+      skipSuccessfulRequests: false,
+      skipFailedRequests: false
+    },
+    firewall: {
+      enabled: true,
+      allowedOrigins: ['*'],
+      maxConnectionsPerIP: 100
     },
     ddosProtection: {
       enabled: true,
-      maxConcurrentConnections: 100,
-      blockDuration: 300 // 5 minutes
+      baseRateLimit: 60,
+      maxRateLimit: 1000,
+      rateMultiplier: 1.5,
+      adaptationSpeed: 0.1,
+      volumeThreshold: 100,
+      burstThreshold: 50,
+      patternThreshold: 10,
+      warningLevel: 0.7,
+      blockLevel: 0.9,
+      emergencyLevel: 0.95,
+      analysisWindow: 300,
+      blacklistDuration: 3600,
+      adaptationWindow: 60
     }
   },
   
@@ -126,11 +149,31 @@ export const developmentConfig: Partial<FusionConfig> = {
     },
     tracing: {
       enabled: true,
-      serviceName: 'evmore-relayer-dev'
+      serviceName: 'evmore-relayer-dev',
+      sampleRate: 0.1
+    },
+    healthCheck: {
+      enabled: true,
+      interval: 30000,
+      timeout: 5000,
+      endpoints: ['/health', '/ready']
     },
     alerts: {
       enabled: true,
-      webhookUrl: process.env.ALERT_WEBHOOK_URL
+      channels: [
+        {
+          type: 'webhook',
+          config: {
+            url: process.env.ALERT_WEBHOOK_URL
+          }
+        }
+      ],
+      thresholds: {
+        errorRate: 0.05,
+        responseTime: 5000,
+        diskUsage: 0.9,
+        memoryUsage: 0.8
+      }
     }
   }
 };
