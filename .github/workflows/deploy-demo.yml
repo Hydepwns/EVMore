@@ -1,5 +1,5 @@
-name: Deploy EVMore Demo to GitHub Pages
-description: "Deploy the EVMore demo website to GitHub Pages and custom domain"
+name: Deploy EVMore Documentation to GitHub Pages
+description: "Deploy the EVMore documentation website to GitHub Pages and custom domain"
 
 on:
   push:
@@ -73,7 +73,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/hackathon
+          path: docs
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -88,17 +88,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare demo for custom domain
+      - name: Prepare docs for custom domain
         run: |
-          echo "Preparing demo for custom domain deployment..."
-          echo "Demo files are ready at: docs/hackathon/"
+          echo "Preparing documentation for custom domain deployment..."
+          echo "Main docs: docs/index.html"
+          echo "Demo files: docs/hackathon/"
+          echo "API docs: docs/api-reference.html"
+          echo "Examples: docs/examples.html"
           echo "Custom domain: evmore.droo.foo"
           echo "CNAME file: $(cat CNAME)"
 
       - name: Notify deployment
         run: |
-          echo "🎉 Demo ready for custom domain deployment!"
-          echo "Custom Domain: https://evmore.droo.foo"
+          echo "🎉 Documentation ready for custom domain deployment!"
+          echo "Main Docs: https://evmore.droo.foo"
+          echo "Demo: https://evmore.droo.foo/hackathon/"
+          echo "API Reference: https://evmore.droo.foo/api-reference.html"
+          echo "Examples: https://evmore.droo.foo/examples.html"
           echo "GitHub Pages: https://hydepwns.github.io/EVMore/"
 
   # Performance and accessibility testing
