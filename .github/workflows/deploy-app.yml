@@ -34,7 +34,11 @@ jobs:
       - name: Install dependencies
         run: |
           apk add --no-cache git
-          npm ci --prefer-offline --no-audit
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Current directory: $(pwd)"
+          echo "Directory contents: $(ls -la)"
+          npm install
 
       - name: Build dependencies
         run: npm run build:libs && npm run build:sdk
