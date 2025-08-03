@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVMore - Cross-Chain HTLC Protocol</title>
+    <meta name="description" content="EVMore: Revolutionary cross-chain HTLC protocol for seamless token swaps between Ethereum and Cosmos ecosystems">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-exchange-alt"></i>
+                <span>EVMore</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#demo">Demo</a>
+                <a href="#architecture">Architecture</a>
+                <a href="#docs">Docs</a>
+                <a href="https://github.com/your-org/EVMore" target="_blank" class="github-link">
+                    <i class="fab fa-github"></i>
+                    GitHub
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Cross-Chain <span class="highlight">HTLC</span> Protocol
+                </h1>
+                <p class="hero-subtitle">
+                    Seamlessly swap tokens between Ethereum and Cosmos ecosystems with atomic cross-chain transactions
+                </p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">99.9%</span>
+                        <span class="stat-label">Success Rate</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">&lt;30s</span>
+                        <span class="stat-label">Swap Time</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">2</span>
+                        <span class="stat-label">Chains</span>
+                    </div>
+                </div>
+                <div class="hero-buttons">
+                    <a href="#demo" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Try Demo
+                    </a>
+                    <a href="#docs" class="btn btn-secondary">
+                        <i class="fas fa-book"></i>
+                        Documentation
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="chain-visual">
+                    <div class="chain ethereum">
+                        <i class="fab fa-ethereum"></i>
+                        <span>Ethereum</span>
+                    </div>
+                    <div class="bridge">
+                        <div class="bridge-line"></div>
+                        <div class="bridge-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="bridge-line"></div>
+                    </div>
+                    <div class="chain cosmos">
+                        <i class="fas fa-atom"></i>
+                        <span>Cosmos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Why EVMore?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Atomic Swaps</h3>
+                    <p>Guaranteed atomic cross-chain transactions with HTLC (Hash Time-Locked Contracts)</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Lightning Fast</h3>
+                    <p>Complete swaps in under 30 seconds with optimized relay infrastructure</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Secure by Design</h3>
+                    <p>Built with security-first principles and comprehensive audit coverage</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Developer Friendly</h3>
+                    <p>Simple SDK and comprehensive documentation for easy integration</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <h3>Multi-Chain</h3>
+                    <p>Support for Ethereum and Cosmos ecosystems with extensible architecture</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Production Ready</h3>
+                    <p>Battle-tested infrastructure with monitoring and alerting systems</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <h2 class="section-title">Live Demo</h2>
+            <div class="demo-container">
+                <div class="demo-card">
+                    <div class="demo-header">
+                        <h3>Cross-Chain Swap</h3>
+                        <div class="demo-status">
+                            <span class="status-indicator online"></span>
+                            <span>Testnet Active</span>
+                        </div>
+                    </div>
+                    <div class="swap-interface">
+                        <div class="swap-input">
+                            <label>From (Ethereum)</label>
+                            <div class="input-group">
+                                <input type="number" id="from-amount" placeholder="0.0" min="0" step="0.1">
+                                <select id="from-token">
+                                    <option value="ETH">ETH</option>
+                                    <option value="USDC">USDC</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="swap-arrow">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="swap-input">
+                            <label>To (Cosmos)</label>
+                            <div class="input-group">
+                                <input type="number" id="to-amount" placeholder="0.0" readonly>
+                                <select id="to-token">
+                                    <option value="ATOM">ATOM</option>
+                                    <option value="OSMO">OSMO</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="swap-details">
+                            <div class="detail-row">
+                                <span>Exchange Rate:</span>
+                                <span id="exchange-rate">1 ETH = 1,500 ATOM</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Network Fee:</span>
+                                <span id="network-fee">~$2.50</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Estimated Time:</span>
+                                <span id="estimated-time">~30 seconds</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-large" id="swap-button">
+                            <i class="fas fa-rocket"></i>
+                            Start Swap
+                        </button>
+                    </div>
+                </div>
+                <div class="demo-status-panel">
+                    <h4>Swap Status</h4>
+                    <div class="status-timeline">
+                        <div class="timeline-step" id="step-1">
+                            <div class="step-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="step-content">
+                                <h5>Connect Wallet</h5>
+                                <p>Connect your Ethereum wallet</p>
+                            </div>
+                        </div>
+                        <div class="timeline-step" id="step-2">
+                            <div class="step-icon">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div class="step-content">
+                                <h5>Create HTLC</h5>
+                                <p>Deploy HTLC contract on Ethereum</p>
+                            </div>
+                        </div>
+                        <div class="timeline-step" id="step-3">
+                            <div class="step-icon">
+                                <i class="fas fa-broadcast-tower"></i>
+                            </div>
+                            <div class="step-content">
+                                <h5>Relay Transaction</h5>
+                                <p>Relay to Cosmos network</p>
+                            </div>
+                        </div>
+                        <div class="timeline-step" id="step-4">
+                            <div class="step-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="step-content">
+                                <h5>Complete</h5>
+                                <p>Swap completed successfully</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="architecture">
+        <div class="container">
+            <h2 class="section-title">Architecture</h2>
+            <div class="architecture-grid">
+                <div class="arch-card">
+                    <h3>Smart Contracts</h3>
+                    <ul>
+                        <li>HTLC contracts on Ethereum</li>
+                        <li>CosmWasm contracts on Cosmos</li>
+                        <li>Cross-chain message passing</li>
+                        <li>Automated dispute resolution</li>
+                    </ul>
+                </div>
+                <div class="arch-card">
+                    <h3>Relayer Network</h3>
+                    <ul>
+                        <li>High-performance relayers</li>
+                        <li>Connection pooling</li>
+                        <li>Fault tolerance</li>
+                        <li>Load balancing</li>
+                    </ul>
+                </div>
+                <div class="arch-card">
+                    <h3>SDK & APIs</h3>
+                    <ul>
+                        <li>TypeScript SDK</li>
+                        <li>RESTful APIs</li>
+                        <li>WebSocket events</li>
+                        <li>Developer tools</li>
+                    </ul>
+                </div>
+                <div class="arch-card">
+                    <h3>Monitoring</h3>
+                    <ul>
+                        <li>Real-time metrics</li>
+                        <li>Alerting system</li>
+                        <li>Transaction tracking</li>
+                        <li>Performance analytics</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="architecture-diagram">
+                <img src="architecture-diagram.svg" alt="EVMore Architecture Diagram" class="arch-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section id="docs" class="docs">
+        <div class="container">
+            <h2 class="section-title">Documentation</h2>
+            <div class="docs-grid">
+                <a href="#" class="doc-card">
+                    <div class="doc-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Quick Start</h3>
+                    <p>Get up and running in 5 minutes</p>
+                </a>
+                <a href="#" class="doc-card">
+                    <div class="doc-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>API Reference</h3>
+                    <p>Complete API documentation</p>
+                </a>
+                <a href="#" class="doc-card">
+                    <div class="doc-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Guides</h3>
+                    <p>Step-by-step tutorials</p>
+                </a>
+                <a href="#" class="doc-card">
+                    <div class="doc-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>Examples</h3>
+                    <p>Code examples and samples</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>EVMore</span>
+                    </div>
+                    <p>Revolutionary cross-chain HTLC protocol for seamless token swaps</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#docs">Documentation</a></li>
+                        <li><a href="https://github.com/your-org/EVMore">GitHub</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="#"><i class="fab fa-discord"></i> Discord</a></li>
+                        <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
+                        <li><a href="#"><i class="fab fa-telegram"></i> Telegram</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 EVMore. Built for the hackathon with ❤️</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

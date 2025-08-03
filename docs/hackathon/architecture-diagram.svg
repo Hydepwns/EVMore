@@ -1,0 +1,140 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ethereumGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#627eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cosmosGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2e3148;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1b2e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="relayerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8fafc"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-family="Inter, sans-serif" font-size="24" font-weight="bold" fill="#1f2937">EVMore Architecture</text>
+  
+  <!-- Ethereum Chain -->
+  <g transform="translate(50, 80)">
+    <rect x="0" y="0" width="300" height="200" rx="12" fill="url(#ethereumGrad)" filter="url(#shadow)"/>
+    <text x="150" y="30" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="bold" fill="white">Ethereum Network</text>
+    
+    <!-- HTLC Contract -->
+    <rect x="20" y="50" width="120" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="80" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="white">HTLC Contract</text>
+    <text x="80" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">Smart Contract</text>
+    
+    <!-- User Wallet -->
+    <rect x="160" y="50" width="120" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="220" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="white">User Wallet</text>
+    <text x="220" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">MetaMask/Web3</text>
+    
+    <!-- SDK -->
+    <rect x="20" y="130" width="260" height="50" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="150" y="150" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="white">Ethereum SDK</text>
+    <text x="150" y="165" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">TypeScript Client</text>
+  </g>
+  
+  <!-- Cosmos Chain -->
+  <g transform="translate(450, 80)">
+    <rect x="0" y="0" width="300" height="200" rx="12" fill="url(#cosmosGrad)" filter="url(#shadow)"/>
+    <text x="150" y="30" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="bold" fill="white">Cosmos Network</text>
+    
+    <!-- CosmWasm Contract -->
+    <rect x="20" y="50" width="120" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="80" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="white">CosmWasm HTLC</text>
+    <text x="80" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">Smart Contract</text>
+    
+    <!-- User Account -->
+    <rect x="160" y="50" width="120" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="220" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="white">User Account</text>
+    <text x="220" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">Keplr/Cosmos</text>
+    
+    <!-- SDK -->
+    <rect x="20" y="130" width="260" height="50" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="150" y="150" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="white">Cosmos SDK</text>
+    <text x="150" y="165" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">TypeScript Client</text>
+  </g>
+  
+  <!-- Relayer Network -->
+  <g transform="translate(200, 320)">
+    <rect x="0" y="0" width="400" height="120" rx="12" fill="url(#relayerGrad)" filter="url(#shadow)"/>
+    <text x="200" y="25" text-anchor="middle" font-family="Inter, sans-serif" font-size="18" font-weight="bold" fill="white">Relayer Network</text>
+    
+    <!-- Relayer Nodes -->
+    <rect x="20" y="40" width="80" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="60" y="60" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="white">Relayer 1</text>
+    <text x="60" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="rgba(255,255,255,0.8)">High Performance</text>
+    
+    <rect x="120" y="40" width="80" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="160" y="60" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="white">Relayer 2</text>
+    <text x="160" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="rgba(255,255,255,0.8)">Load Balanced</text>
+    
+    <rect x="220" y="40" width="80" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="260" y="60" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="white">Relayer 3</text>
+    <text x="260" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="rgba(255,255,255,0.8)">Fault Tolerant</text>
+    
+    <rect x="320" y="40" width="60" height="60" rx="8" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="2"/>
+    <text x="350" y="60" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="white">...</text>
+    <text x="350" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="rgba(255,255,255,0.8)">More</text>
+  </g>
+  
+  <!-- Connection Lines -->
+  <!-- Ethereum to Relayer -->
+  <line x1="350" y1="180" x2="200" y2="320" stroke="#6366f1" stroke-width="3" stroke-dasharray="5,5"/>
+  <polygon points="200,320 195,310 205,310" fill="#6366f1"/>
+  
+  <!-- Cosmos to Relayer -->
+  <line x1="450" y1="180" x2="400" y2="320" stroke="#6366f1" stroke-width="3" stroke-dasharray="5,5"/>
+  <polygon points="400,320 395,310 405,310" fill="#6366f1"/>
+  
+  <!-- Cross-chain Bridge -->
+  <line x1="350" y1="280" x2="450" y2="280" stroke="#f59e0b" stroke-width="4"/>
+  <circle cx="400" cy="280" r="8" fill="#f59e0b"/>
+  <text x="400" y="300" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#f59e0b">HTLC Bridge</text>
+  
+  <!-- Monitoring -->
+  <g transform="translate(50, 480)">
+    <rect x="0" y="0" width="700" height="80" rx="12" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/>
+    <text x="350" y="25" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#374151">Monitoring & Analytics</text>
+    
+    <!-- Monitoring Components -->
+    <rect x="20" y="35" width="100" height="35" rx="6" fill="#6366f1" stroke="none"/>
+    <text x="70" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="white">Prometheus</text>
+    
+    <rect x="140" y="35" width="100" height="35" rx="6" fill="#10b981" stroke="none"/>
+    <text x="190" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="white">Grafana</text>
+    
+    <rect x="260" y="35" width="100" height="35" rx="6" fill="#f59e0b" stroke="none"/>
+    <text x="310" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="white">Alerting</text>
+    
+    <rect x="380" y="35" width="100" height="35" rx="6" fill="#ef4444" stroke="none"/>
+    <text x="430" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="white">Logs</text>
+    
+    <rect x="500" y="35" width="100" height="35" rx="6" fill="#8b5cf6" stroke="none"/>
+    <text x="550" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="white">Tracing</text>
+    
+    <rect x="620" y="35" width="60" height="35" rx="6" fill="#6b7280" stroke="none"/>
+    <text x="650" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="white">API</text>
+  </g>
+  
+  <!-- Legend -->
+  <g transform="translate(50, 580)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#374151">Legend:</text>
+    <circle cx="80" cy="-5" r="4" fill="#6366f1"/>
+    <text x="90" y="0" font-family="Inter, sans-serif" font-size="10" fill="#374151">Cross-chain Communication</text>
+    <circle cx="250" cy="-5" r="4" fill="#f59e0b"/>
+    <text x="260" y="0" font-family="Inter, sans-serif" font-size="10" fill="#374151">HTLC Bridge</text>
+    <circle cx="350" cy="-5" r="4" fill="#10b981"/>
+    <text x="360" y="0" font-family="Inter, sans-serif" font-size="10" fill="#374151">Relayer Network</text>
+  </g>
+</svg> 
