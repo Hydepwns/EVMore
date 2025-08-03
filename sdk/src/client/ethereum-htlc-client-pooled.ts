@@ -210,7 +210,7 @@ export class PooledEthereumHTLCClient {
       return currentGasPrice;
     });
 
-    const { ethers: ethersLib } = await import('ethers');
+    const ethersLib = await import('ethers');
     const gasPriceFormatted = ethersLib.formatUnits(gasPrice, 'gwei');
     const estimatedCost = ethersLib.formatEther(
       BigInt(gasEstimate) * BigInt(gasPrice.toString())
