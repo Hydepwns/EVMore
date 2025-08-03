@@ -26,16 +26,18 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     container:
-      image: node:18-alpine
+      image: node:20-alpine
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        working-directory: ./frontend
         run: |
           apk add --no-cache git
           npm ci --prefer-offline --no-audit
+
+      - name: Build dependencies
+        run: npm run build:libs && npm run build:sdk
 
       - name: Build application
         working-directory: ./frontend

@@ -7,6 +7,7 @@
     "libs/*",
     "relayer",
     "sdk",
+    "frontend",
     "contracts/ethereum"
   ],
   "scripts": {
