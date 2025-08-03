@@ -30,6 +30,24 @@ export interface CreateCosmosHTLCParams {
   targetAddress: string;
 }
 
+// Define the expected HTLC query result type
+interface WasmHTLC {
+  id: string;
+  sender: string;
+  receiver: string;
+  amount: Array<{ denom: string; amount: string }>;
+  hashlock: string;
+  timelock: number;
+  withdrawn: boolean;
+  refunded: boolean;
+  target_chain: string;
+  target_address: string;
+}
+
+interface WasmHTLCQueryResult {
+  htlcs: WasmHTLC[];
+}
+
 export class CosmosHTLCClient {
   private client?: SigningStargateClient;
   private queryClient?: StargateClient;
@@ -312,37 +330,32 @@ export class CosmosHTLCClient {
       this.queryClient = await StargateClient.connect(this.config.rpcUrl);
     }
 
-    try {
-      const queryMsg = {
-        list_htlcs: {
-          start_after: startAfter,
-          limit: limit
-        }
-      };
+    const queryMsg = {
+      list_htlcs: {
+        start_after: startAfter,
+        limit,
+      },
+    };
 
-      // Type assertion needed as queryContractSmart is a CosmWasm extension method
-      const result = await (this.queryClient as any).queryContractSmart(
-        this.config.htlcContract,
-        queryMsg
-      );
+    // Type assertion to WasmHTLCQueryResult
+    const result = await (this.queryClient as any).queryContractSmart(
+      this.config.htlcContract,
+      queryMsg
+    ) as WasmHTLCQueryResult;
 
-      return result.htlcs.map((htlc: any) => ({
-        htlcId: htlc.id,
-        sender: htlc.sender,
-        receiver: htlc.receiver,
-        token: this.config.denom,
-        amount: htlc.amount[0]?.amount || '0',
-        hashlock: htlc.hashlock,
-        timelock: htlc.timelock,
-        withdrawn: htlc.withdrawn,
-        refunded: htlc.refunded,
-        targetChain: htlc.target_chain,
-        targetAddress: htlc.target_address
-      }));
-    } catch (error) {
-      // Return empty array on error
-      return [];
-    }
+    return result.htlcs.map((htlc) => ({
+      htlcId: htlc.id,
+      sender: htlc.sender,
+      receiver: htlc.receiver,
+      token: this.config.denom,
+      amount: htlc.amount[0]?.amount || '0',
+      hashlock: htlc.hashlock,
+      timelock: htlc.timelock,
+      withdrawn: htlc.withdrawn,
+      refunded: htlc.refunded,
+      targetChain: htlc.target_chain,
+      targetAddress: htlc.target_address,
+    }));
   }
 
   /**
