@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVMore Favicon Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #3B82F6;
+            text-align: center;
+        }
+        .preview {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+        }
+        .favicon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .favicon-preview img {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .download-btn {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .download-btn:hover {
+            background: #2563EB;
+        }
+        .instructions {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            color: #1e40af;
+            margin-top: 0;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 EVMore Favicon Generator</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Right-click on each favicon preview below</li>
+                <li>Select "Save image as..."</li>
+                <li>Save with the exact filename shown (e.g., "favicon-16x16.png")</li>
+                <li>Place all files in <code>frontend/public/</code> directory</li>
+                <li>Copy the same files to <code>docs/</code> directory for the documentation site</li>
+            </ol>
+        </div>
+
+        <div class="preview">
+            <h3>Favicon Previews</h3>
+            
+            <div class="favicon-preview">
+                <img id="favicon16" width="16" height="16" alt="16x16">
+                <br>
+                <button class="download-btn" onclick="downloadFavicon(16)">Download 16x16</button>
+                <br>
+                <small>favicon-16x16.png</small>
+            </div>
+            
+            <div class="favicon-preview">
+                <img id="favicon32" width="32" height="32" alt="32x32">
+                <br>
+                <button class="download-btn" onclick="downloadFavicon(32)">Download 32x32</button>
+                <br>
+                <small>favicon-32x32.png</small>
+            </div>
+            
+            <div class="favicon-preview">
+                <img id="favicon48" width="48" height="48" alt="48x48">
+                <br>
+                <button class="download-btn" onclick="downloadFavicon(48)">Download 48x48</button>
+                <br>
+                <small>favicon-48x48.png</small>
+            </div>
+            
+            <div class="favicon-preview">
+                <img id="appleTouch" width="180" height="180" alt="180x180">
+                <br>
+                <button class="download-btn" onclick="downloadFavicon(180)">Download 180x180</button>
+                <br>
+                <small>apple-touch-icon.png</small>
+            </div>
+            
+            <div class="favicon-preview">
+                <img id="android192" width="192" height="192" alt="192x192">
+                <br>
+                <button class="download-btn" onclick="downloadFavicon(192)">Download 192x192</button>
+                <br>
+                <small>android-chrome-192x192.png</small>
+            </div>
+            
+            <div class="favicon-preview">
+                <img id="android512" width="256" height="256" alt="512x512">
+                <br>
+                <button class="download-btn" onclick="downloadFavicon(512)">Download 512x512</button>
+                <br>
+                <small>android-chrome-512x512.png</small>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>Next Steps:</h3>
+            <ol>
+                <li>Download all favicon files using the buttons above</li>
+                <li>Place them in <code>frontend/public/</code> directory</li>
+                <li>Copy the same files to <code>docs/</code> directory</li>
+                <li>Test the favicons in your browser</li>
+                <li>The favicon tags have already been added to both index.html files</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Hidden canvas for generating favicons -->
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <script>
+        // EVMore Logo SVG
+        const logoSVG = `
+        <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="ovalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#6B46C1;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <circle cx="32" cy="32" r="30" fill="#1F2937" opacity="0.1"/>
+            
+            <ellipse cx="24" cy="32" rx="18" ry="12" 
+                     fill="none" 
+                     stroke="url(#ovalGradient)" 
+                     stroke-width="3"/>
+            
+            <ellipse cx="40" cy="32" rx="18" ry="12" 
+                     fill="none" 
+                     stroke="url(#ovalGradient)" 
+                     stroke-width="3"/>
+            
+            <circle cx="32" cy="32" r="4" 
+                    fill="#06B6D4"/>
+        </svg>`;
+
+        // Generate favicon images
+        function generateFavicon(size) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Create a temporary image element
+            const img = new Image();
+            const svgBlob = new Blob([logoSVG], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = function() {
+                // Clear canvas
+                ctx.clearRect(0, 0, size, size);
+                
+                // Draw the SVG
+                ctx.drawImage(img, 0, 0, size, size);
+                
+                // Update the preview
+                const previewId = size === 16 ? 'favicon16' : 
+                                size === 32 ? 'favicon32' : 
+                                size === 48 ? 'favicon48' : 
+                                size === 180 ? 'appleTouch' : 
+                                size === 192 ? 'android192' : 'android512';
+                
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.src = canvas.toDataURL('image/png');
+                }
+                
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+        }
+
+        // Download favicon
+        function downloadFavicon(size) {
+            const canvas = document.getElementById('canvas');
+            const link = document.createElement('a');
+            
+            // Generate the favicon
+            generateFavicon(size);
+            
+            // Wait a moment for the canvas to update
+            setTimeout(() => {
+                const filename = size === 16 ? 'favicon-16x16.png' : 
+                               size === 32 ? 'favicon-32x32.png' : 
+                               size === 48 ? 'favicon-48x48.png' : 
+                               size === 180 ? 'apple-touch-icon.png' : 
+                               size === 192 ? 'android-chrome-192x192.png' : 'android-chrome-512x512.png';
+                
+                link.download = filename;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }, 100);
+        }
+
+        // Generate all favicon previews on page load
+        window.onload = function() {
+            generateFavicon(16);
+            generateFavicon(32);
+            generateFavicon(48);
+            generateFavicon(180);
+            generateFavicon(192);
+            generateFavicon(512);
+        };
+    </script>
+</body>
+</html> 

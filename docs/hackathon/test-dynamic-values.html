@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVMore Dynamic Values Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .value-display {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 5px;
+            display: inline-block;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>EVMore Dynamic Values Test</h1>
+    
+    <div class="test-card">
+        <h2>Market Data Test</h2>
+        <div id="market-status" class="status info">Loading...</div>
+        <div class="value-display" id="eth-price">ETH Price: Loading...</div>
+        <div class="value-display" id="atom-price">ATOM Price: Loading...</div>
+        <div class="value-display" id="osmo-price">OSMO Price: Loading...</div>
+        <div class="value-display" id="exchange-rate">ETH-ATOM Rate: Loading...</div>
+    </div>
+    
+    <div class="test-card">
+        <h2>Gas Price Test</h2>
+        <div class="value-display" id="gas-price">Gas Price: Loading...</div>
+        <div class="value-display" id="network-congestion">Network Congestion: Loading...</div>
+        <div class="value-display" id="fee-calculation">Fee Calculation: Loading...</div>
+    </div>
+    
+    <div class="test-card">
+        <h2>Network Status Test</h2>
+        <div class="value-display" id="network-status">Network Status: Loading...</div>
+        <div class="value-display" id="success-rate">Success Rate: Loading...</div>
+        <div class="value-display" id="estimated-time">Estimated Time: Loading...</div>
+    </div>
+
+    <script>
+        // Test market data fetching
+        async function testMarketData() {
+            try {
+                const tokenIds = ['ethereum', 'cosmos', 'osmosis', 'usd-coin'];
+                const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${tokenIds.join(',')}&vs_currencies=usd&include_24hr_change=true`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update display
+                document.getElementById('market-status').textContent = '✅ Market data loaded successfully';
+                document.getElementById('market-status').className = 'status success';
+                
+                document.getElementById('eth-price').textContent = `ETH Price: $${data.ethereum?.usd || 'N/A'}`;
+                document.getElementById('atom-price').textContent = `ATOM Price: $${data.cosmos?.usd || 'N/A'}`;
+                document.getElementById('osmo-price').textContent = `OSMO Price: $${data.osmosis?.usd || 'N/A'}`;
+                
+                if (data.ethereum && data.cosmos) {
+                    const rate = data.ethereum.usd / data.cosmos.usd;
+                    document.getElementById('exchange-rate').textContent = `ETH-ATOM Rate: ${rate.toFixed(2)}`;
+                }
+                
+                console.log('Market data test successful:', data);
+                
+            } catch (error) {
+                document.getElementById('market-status').textContent = `❌ Market data failed: ${error.message}`;
+                document.getElementById('market-status').className = 'status error';
+                console.error('Market data test failed:', error);
+            }
+        }
+        
+        // Test gas price simulation
+        function testGasPrice() {
+            try {
+                const baseGasPrice = 25;
+                const networkLoad = Math.random();
+                let gasPrice;
+                
+                if (networkLoad < 0.3) {
+                    gasPrice = baseGasPrice * (0.8 + Math.random() * 0.4);
+                } else if (networkLoad < 0.7) {
+                    gasPrice = baseGasPrice * (1.2 + Math.random() * 0.6);
+                } else {
+                    gasPrice = baseGasPrice * (2.0 + Math.random() * 1.0);
+                }
+                
+                const congestion = Math.min(1, gasPrice / 50);
+                const gasLimit = 150000;
+                const networkFee = (gasPrice * gasLimit) / 1e9;
+                
+                document.getElementById('gas-price').textContent = `Gas Price: ${Math.round(gasPrice)} Gwei`;
+                document.getElementById('network-congestion').textContent = `Network Congestion: ${(congestion * 100).toFixed(1)}%`;
+                document.getElementById('fee-calculation').textContent = `Fee Calculation: $${networkFee.toFixed(6)} ETH`;
+                
+                console.log('Gas price test successful:', { gasPrice, congestion, networkFee });
+                
+            } catch (error) {
+                console.error('Gas price test failed:', error);
+            }
+        }
+        
+        // Test network conditions
+        function testNetworkConditions() {
+            try {
+                const baseSuccessRate = 99.9;
+                const congestion = Math.random();
+                const successRate = Math.max(95, baseSuccessRate - (congestion * 0.05));
+                
+                const congestionMultiplier = 1 + congestion;
+                const htlcTime = Math.round(15 * congestionMultiplier);
+                const relayTime = Math.round(10 * congestionMultiplier);
+                const confirmTime = Math.round(5 * congestionMultiplier);
+                const totalTime = htlcTime + relayTime + confirmTime;
+                
+                let networkStatus;
+                if (congestion <= 0.3) {
+                    networkStatus = '🟢 Low Congestion';
+                } else if (congestion <= 0.7) {
+                    networkStatus = '🟡 Moderate Congestion';
+                } else {
+                    networkStatus = '🔴 High Congestion';
+                }
+                
+                document.getElementById('network-status').textContent = `Network Status: ${networkStatus}`;
+                document.getElementById('success-rate').textContent = `Success Rate: ${successRate.toFixed(1)}%`;
+                document.getElementById('estimated-time').textContent = `Estimated Time: ~${totalTime} seconds (HTLC: ${htlcTime}s, Relay: ${relayTime}s, Confirm: ${confirmTime}s)`;
+                
+                console.log('Network conditions test successful:', { congestion, successRate, totalTime });
+                
+            } catch (error) {
+                console.error('Network conditions test failed:', error);
+            }
+        }
+        
+        // Run all tests
+        async function runTests() {
+            console.log('Starting dynamic values tests...');
+            
+            await testMarketData();
+            testGasPrice();
+            testNetworkConditions();
+            
+            console.log('All tests completed!');
+        }
+        
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', runTests);
+        
+        // Auto-refresh every 10 seconds
+        setInterval(runTests, 10000);
+    </script>
+</body>
+</html> 

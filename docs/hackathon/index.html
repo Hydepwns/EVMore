@@ -55,11 +55,15 @@
                     </div>
                 </div>
                 <div class="hero-buttons">
-                    <a href="#demo" class="btn btn-primary">
+                    <a href="https://evmore.droo.foo" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-rocket"></i>
+                        Launch App
+                    </a>
+                    <a href="#demo" class="btn btn-secondary">
                         <i class="fas fa-play"></i>
                         Try Demo
                     </a>
-                    <a href="#docs" class="btn btn-secondary">
+                    <a href="#docs" class="btn btn-outline">
                         <i class="fas fa-book"></i>
                         Documentation
                     </a>
@@ -183,12 +187,12 @@
                         <div class="swap-details">
                             <div class="detail-row">
                                 <span>Exchange Rate:</span>
-                                <span id="exchange-rate">1 ETH = 1,500 ATOM</span>
+                                <span id="exchange-rate">???</span>
                             </div>
                             <div class="detail-row">
                                 <span>Network Fee:</span>
-                                <span id="network-fee">~$2.50</span>
-                                <span class="fee-breakdown" id="fee-breakdown">(Ethereum: $1.20, Cosmos: $0.80, Relayer: $0.50)</span>
+                                <span id="network-fee">-</span>
+                                <span class="fee-breakdown" id="fee-breakdown">(Ethereum: $?.00, Cosmos: $?.00, Relayer: $?.00)</span>
                             </div>
                             <div class="detail-row">
                                 <span>Estimated Time:</span>
@@ -202,8 +206,8 @@
                             </div>
                             <div class="detail-row">
                                 <span>Gas Price:</span>
-                                <span id="gas-price">25 Gwei</span>
-                                <span class="gas-status" id="gas-status">🟡 Moderate</span>
+                                <span id="gas-price">-</span>
+                                <span class="gas-status" id="gas-status">-</span>
                             </div>
                         </div>
                         <button class="btn btn-primary btn-large" id="swap-button">
@@ -221,7 +225,6 @@
                             </div>
                             <div class="step-content">
                                 <h5>Connect Wallet</h5>
-                                <p>Connect your Ethereum wallet</p>
                             </div>
                         </div>
                         <div class="timeline-step" id="step-2">
@@ -310,7 +313,7 @@
         <div class="container">
             <h2 class="section-title">Documentation</h2>
             <div class="docs-grid">
-                <a href="../DEVELOPMENT_GUIDE.md" class="doc-card">
+                <a href="../DEVELOPMENT_GUIDE.html" class="doc-card">
                     <div class="doc-icon">
                         <i class="fas fa-rocket"></i>
                     </div>
@@ -324,7 +327,7 @@
                     <h3>API Reference</h3>
                     <p>Complete API documentation</p>
                 </a>
-                <a href="../OPERATIONS_GUIDE.md" class="doc-card">
+                <a href="../OPERATIONS_GUIDE.html" class="doc-card">
                     <div class="doc-icon">
                         <i class="fas fa-book"></i>
                     </div>
