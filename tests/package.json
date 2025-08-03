@@ -1,7 +1,7 @@
 {
-  "name": "@1inch-fusion-cosmos/tests",
+  "name": "@evmore/tests",
   "version": "0.1.0",
-  "description": "Test suite for 1inch Fusion+ Cosmos Extension",
+  "description": "Test suite for EVMore protocol",
   "private": true,
   "scripts": {
     "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
@@ -14,7 +14,7 @@
     "teardown:local": "ts-node scripts/teardown-local-env.ts"
   },
   "dependencies": {
-    "@1inch-fusion-cosmos/sdk": "workspace:*",
+    "@evmore/sdk": "workspace:*",
     "@cosmjs/cosmwasm-stargate": "^0.31.0",
     "@cosmjs/proto-signing": "^0.31.0",
     "@cosmjs/stargate": "^0.31.0",

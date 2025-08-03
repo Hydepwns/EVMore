@@ -6,7 +6,7 @@
  * but with test-appropriate values.
  */
 
-import { getTestConfig, updateConfig, resetConfig } from '../../shared/config/fusion-config';
+// Note: Shared config import removed - using local defaults
 
 // Export commonly used test values
 export const TEST_VALUES = {
