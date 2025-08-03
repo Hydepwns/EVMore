@@ -1,0 +1,196 @@
+import { EthereumMonitor } from '../../src/monitor/ethereum-monitor';
+import { mockEthersProvider, mockContract, createMockEvent } from '../mocks/ethers.mock';
+import { createMockLogger } from '../mocks/pino.mock';
+import { EthereumConfig } from '../../src/config';
+
+describe('EthereumMonitor', () => {
+  let monitor: EthereumMonitor;
+  let mockProvider: any;
+  let mockHTLCContract: any;
+  let mockLogger: any;
+  let config: EthereumConfig;
+
+  beforeEach(() => {
+    // Setup mocks
+    mockProvider = mockEthersProvider();
+    mockHTLCContract = mockContract();
+    mockLogger = createMockLogger();
+    
+    // Setup config
+    config = {
+      rpcUrl: 'http://localhost:8545',
+      htlcContractAddress: '0x1234567890123456789012345678901234567890',
+      resolverContractAddress: '0x0987654321098765432109876543210987654321',
+      privateKey: '0xprivatekey',
+      chainId: 1,
+      confirmations: 1,
+      gasLimit: 500000,
+    };
+
+    // Mock provider methods
+    mockProvider.getBlockNumber.mockResolvedValue(1000);
+    mockProvider.getContract = jest.fn().mockReturnValue(mockHTLCContract);
+
+    // Create monitor instance
+    monitor = new EthereumMonitor(config, mockLogger);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('start', () => {
+    it('should start monitoring from current block', async () => {
+      await monitor.start();
+
+      expect(mockProvider.getBlockNumber).toHaveBeenCalled();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({ blockNumber: 1000 }),
+        'Starting from block'
+      );
+    });
+
+    it('should not start if already running', async () => {
+      await monitor.start();
+      await monitor.start();
+
+      expect(mockLogger.warn).toHaveBeenCalledWith('Ethereum monitor already running');
+    });
+  });
+
+  describe('event detection', () => {
+    it('should detect HTLCCreated events', async () => {
+      const mockEvent = createMockEvent({
+        event: 'HTLCCreated',
+        args: {
+          htlcId: '0xhtlc123',
+          sender: '0xsender',
+          token: '0xtoken',
+          amount: '1000000',
+          hashlock: '0xhashlock',
+          timelock: 1234567890,
+          targetChain: 'osmosis-1',
+          targetAddress: 'osmo1abc...',
+        },
+        blockNumber: 1001,
+        transactionHash: '0xtxhash',
+      });
+
+      mockHTLCContract.queryFilter.mockResolvedValue([mockEvent]);
+      mockProvider.getBlockNumber.mockResolvedValue(1002);
+
+      const eventHandler = jest.fn();
+      monitor.onHTLCCreated(eventHandler);
+
+      await monitor.start();
+      
+      // Wait for event processing
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(mockHTLCContract.queryFilter).toHaveBeenCalled();
+      expect(eventHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          htlcId: '0xhtlc123',
+          sender: '0xsender',
+          targetChain: 'osmosis-1',
+        })
+      );
+    });
+
+    it('should handle multiple events in a single block', async () => {
+      const events = [
+        createMockEvent({ args: { htlcId: '0x1' } }),
+        createMockEvent({ args: { htlcId: '0x2' } }),
+        createMockEvent({ args: { htlcId: '0x3' } }),
+      ];
+
+      mockHTLCContract.queryFilter.mockResolvedValue(events);
+      const eventHandler = jest.fn();
+      monitor.onHTLCCreated(eventHandler);
+
+      await monitor.start();
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(eventHandler).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('error handling', () => {
+    it('should retry on RPC errors', async () => {
+      mockProvider.getBlockNumber
+        .mockRejectedValueOnce(new Error('RPC Error'))
+        .mockResolvedValueOnce(1000);
+
+      await monitor.start();
+      await new Promise(resolve => setTimeout(resolve, 6000));
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ error: expect.any(Error) }),
+        'Error monitoring events'
+      );
+      expect(mockProvider.getBlockNumber).toHaveBeenCalledTimes(2);
+    });
+
+    it('should continue monitoring after event handler error', async () => {
+      const mockEvent = createMockEvent({ args: { htlcId: '0x1' } });
+      mockHTLCContract.queryFilter.mockResolvedValue([mockEvent]);
+
+      const eventHandler = jest.fn().mockRejectedValue(new Error('Handler error'));
+      monitor.onHTLCCreated(eventHandler);
+
+      await monitor.start();
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ error: expect.any(Error) }),
+        'Error handling HTLC created event'
+      );
+    });
+  });
+
+  describe('stop', () => {
+    it('should stop monitoring gracefully', async () => {
+      await monitor.start();
+      expect(monitor.getStatus().running).toBe(true);
+
+      await monitor.stop();
+      expect(monitor.getStatus().running).toBe(false);
+    });
+  });
+
+  describe('block processing', () => {
+    it('should process blocks in batches of 100', async () => {
+      mockProvider.getBlockNumber
+        .mockResolvedValueOnce(1000)
+        .mockResolvedValueOnce(1200); // 200 blocks ahead
+
+      mockHTLCContract.queryFilter.mockResolvedValue([]);
+
+      await monitor.start();
+      await new Promise(resolve => setTimeout(resolve, 15000));
+
+      // Should be called twice: blocks 1001-1100 and 1101-1200
+      expect(mockHTLCContract.queryFilter).toHaveBeenCalledTimes(2);
+      expect(mockHTLCContract.queryFilter).toHaveBeenCalledWith(
+        expect.anything(),
+        1001,
+        1100
+      );
+    });
+  });
+
+  describe('getStatus', () => {
+    it('should return current monitoring status', async () => {
+      const status = monitor.getStatus();
+      expect(status).toEqual({
+        running: false,
+        lastBlock: 0,
+      });
+
+      await monitor.start();
+      const runningStatus = monitor.getStatus();
+      expect(runningStatus.running).toBe(true);
+      expect(runningStatus.lastBlock).toBe(1000);
+    });
+  });
+});
