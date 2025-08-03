@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVMore API Reference - Cross-Chain HTLC Protocol</title>
+    <meta name="description" content="Complete API reference for EVMore cross-chain HTLC protocol libraries and SDK">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .breadcrumb {
+            background: var(--bg-secondary);
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .api-overview {
+            padding: 3rem 0;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+        
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .api-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .api-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-color);
+        }
+        
+        .api-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .api-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+        
+        .api-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .api-package {
+            font-size: 0.875rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .api-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .api-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .api-features li {
+            padding: 0.25rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .api-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        
+        .api-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .api-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .api-link:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .api-link.primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .api-link.primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .sdk-section {
+            background: var(--bg-secondary);
+            padding: 3rem 0;
+        }
+        
+        .sdk-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        
+        .sdk-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .sdk-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, var(--accent-color), #d97706);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .sdk-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .sdk-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        .code-block {
+            background: var(--bg-dark);
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .footer {
+            background: var(--bg-dark);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .api-links {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>📚 API Reference</h1>
+            <p>Complete documentation for all EVMore libraries and SDK components</p>
+        </div>
+    </div>
+    
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="index.html">← Back to Documentation</a>
+        </div>
+    </div>
+    
+    <div class="api-overview">
+        <div class="container">
+            <h2 class="section-title">Core Libraries</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon">
+                            <i class="fas fa-cube"></i>
+                        </div>
+                        <div>
+                            <div class="api-title">Types</div>
+                            <div class="api-package">@evmore/types</div>
+                        </div>
+                    </div>
+                    <p class="api-description">
+                        Central type system providing all shared types, interfaces, and type guards for the EVMore ecosystem.
+                    </p>
+                    <ul class="api-features">
+                        <li>Cross-chain swap types</li>
+                        <li>HTLC contract interfaces</li>
+                        <li>Event type definitions</li>
+                        <li>Type guards and validators</li>
+                    </ul>
+                    <div class="api-links">
+                        <a href="../@docs/api/types/README.md" class="api-link primary">
+                            <i class="fas fa-book"></i>
+                            View Docs
+                        </a>
+                        <a href="https://github.com/Hydepwns/EVMore/tree/main/libs/types" class="api-link">
+                            <i class="fab fa-github"></i>
+                            Source
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon">
+                            <i class="fas fa-plug"></i>
+                        </div>
+                        <div>
+                            <div class="api-title">Interfaces</div>
+                            <div class="api-package">@evmore/interfaces</div>
+                        </div>
+                    </div>
+                    <p class="api-description">
+                        Service contracts and dependency injection interfaces for modular architecture.
+                    </p>
+                    <ul class="api-features">
+                        <li>Service contracts</li>
+                        <li>DI interfaces</li>
+                        <li>Plugin system</li>
+                        <li>Extension points</li>
+                    </ul>
+                    <div class="api-links">
+                        <a href="../@docs/api/interfaces/README.md" class="api-link primary">
+                            <i class="fas fa-book"></i>
+                            View Docs
+                        </a>
+                        <a href="https://github.com/Hydepwns/EVMore/tree/main/libs/interfaces" class="api-link">
+                            <i class="fab fa-github"></i>
+                            Source
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <div class="api-title">Errors</div>
+                            <div class="api-package">@evmore/errors</div>
+                        </div>
+                    </div>
+                    <p class="api-description">
+                        Hierarchical error system with structured error handling and recovery mechanisms.
+                    </p>
+                    <ul class="api-features">
+                        <li>Error hierarchies</li>
+                        <li>Structured errors</li>
+                        <li>Recovery strategies</li>
+                        <li>Error codes</li>
+                    </ul>
+                    <div class="api-links">
+                        <a href="../@docs/api/errors/README.md" class="api-link primary">
+                            <i class="fas fa-book"></i>
+                            View Docs
+                        </a>
+                        <a href="https://github.com/Hydepwns/EVMore/tree/main/libs/errors" class="api-link">
+                            <i class="fab fa-github"></i>
+                            Source
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 class="section-title">Infrastructure Libraries</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div>
+                            <div class="api-title">Config</div>
+                            <div class="api-package">@evmore/config</div>
+                        </div>
+                    </div>
+                    <p class="api-description">
+                        Configuration management with environment-specific settings and validation.
+                    </p>
+                    <ul class="api-features">
+                        <li>Environment configs</li>
+                        <li>Schema validation</li>
+                        <li>Secret management</li>
+                        <li>Hot reloading</li>
+                    </ul>
+                    <div class="api-links">
+                        <a href="../@docs/api/config/README.md" class="api-link primary">
+                            <i class="fas fa-book"></i>
+                            View Docs
+                        </a>
+                        <a href="https://github.com/Hydepwns/EVMore/tree/main/libs/config" class="api-link">
+                            <i class="fab fa-github"></i>
+                            Source
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div>
+                            <div class="api-title">Utils</div>
+                            <div class="api-package">@evmore/utils</div>
+                        </div>
+                    </div>
+                    <p class="api-description">
+                        Common utilities, DI container, and helper functions for the EVMore ecosystem.
+                    </p>
+                    <ul class="api-features">
+                        <li>DI container</li>
+                        <li>Common utilities</li>
+                        <li>Helper functions</li>
+                        <li>Service locator</li>
+                    </ul>
+                    <div class="api-links">
+                        <a href="../@docs/api/utils/README.md" class="api-link primary">
+                            <i class="fas fa-book"></i>
+                            View Docs
+                        </a>
+                        <a href="https://github.com/Hydepwns/EVMore/tree/main/libs/utils" class="api-link">
+                            <i class="fab fa-github"></i>
+                            Source
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon">
+                            <i class="fas fa-network-wired"></i>
+                        </div>
+                        <div>
+                            <div class="api-title">Connection Pool</div>
+                            <div class="api-package">@evmore/connection-pool</div>
+                        </div>
+                    </div>
+                    <p class="api-description">
+                        RPC connection pooling for high-performance blockchain interactions.
+                    </p>
+                    <ul class="api-features">
+                        <li>Connection pooling</li>
+                        <li>Load balancing</li>
+                        <li>Health checks</li>
+                        <li>Failover support</li>
+                    </ul>
+                    <div class="api-links">
+                        <a href="../@docs/api/connection-pool/README.md" class="api-link primary">
+                            <i class="fas fa-book"></i>
+                            View Docs
+                        </a>
+                        <a href="https://github.com/Hydepwns/EVMore/tree/main/libs/connection-pool" class="api-link">
+                            <i class="fab fa-github"></i>
+                            Source
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 class="section-title">Development Libraries</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <div class="api-header">
+                        <div class="api-icon">
+                            <i class="fas fa-vial"></i>
+                        </div>
+                        <div>
+                            <div class="api-title">Test Utils</div>
+                            <div class="api-package">@evmore/test-utils</div>
+                        </div>
+                    </div>
+                    <p class="api-description">
+                        Testing utilities, mocks, and fixtures for comprehensive test coverage.
+                    </p>
+                    <ul class="api-features">
+                        <li>Test builders</li>
+                        <li>Mock factories</li>
+                        <li>Test fixtures</li>
+                        <li>Integration helpers</li>
+                    </ul>
+                    <div class="api-links">
+                        <a href="../@docs/api/test-utils/README.md" class="api-link primary">
+                            <i class="fas fa-book"></i>
+                            View Docs
+                        </a>
+                        <a href="https://github.com/Hydepwns/EVMore/tree/main/libs/test-utils" class="api-link">
+                            <i class="fab fa-github"></i>
+                            Source
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sdk-section">
+        <div class="container">
+            <h2 class="section-title">JavaScript/TypeScript SDK</h2>
+            <div class="sdk-card">
+                <div class="sdk-header">
+                    <div class="sdk-icon">
+                        <i class="fab fa-js"></i>
+                    </div>
+                    <div>
+                        <div class="sdk-title">EVMore SDK</div>
+                        <div class="sdk-subtitle">Complete TypeScript SDK for cross-chain HTLC operations</div>
+                    </div>
+                </div>
+                
+                <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                    The EVMore SDK provides a complete TypeScript interface for interacting with cross-chain HTLC contracts,
+                    managing swaps, and integrating with the EVMore protocol.
+                </p>
+                
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Installation</h3>
+                <div class="code-block">
+npm install @evmore/sdk
+# or
+yarn add @evmore/sdk
+                </div>
+                
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Quick Start</h3>
+                <div class="code-block">
+import { FusionCosmosClient, EthereumHTLCClient } from '@evmore/sdk';
+
+// Initialize clients
+const cosmosClient = new FusionCosmosClient({
+  rpcUrl: 'https://rpc.osmosis.zone',
+  chainId: 'osmosis-1'
+});
+
+const ethereumClient = new EthereumHTLCClient({
+  rpcUrl: 'https://eth-mainnet.alchemyapi.io/v2/YOUR_KEY',
+  contractAddress: '0x...'
+});
+
+// Create a cross-chain swap
+const swap = await cosmosClient.createSwap({
+  fromToken: 'ATOM',
+  toToken: 'ETH',
+  amount: '1000000', // 1 ATOM (6 decimals)
+  recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f06B09'
+});
+                </div>
+                
+                <div class="api-links" style="margin-top: 2rem;">
+                    <a href="https://github.com/Hydepwns/EVMore/tree/main/sdk" class="api-link primary">
+                        <i class="fas fa-book"></i>
+                        SDK Documentation
+                    </a>
+                    <a href="https://github.com/Hydepwns/EVMore/tree/main/sdk/examples" class="api-link">
+                        <i class="fas fa-code"></i>
+                        Examples
+                    </a>
+                    <a href="https://github.com/Hydepwns/EVMore/tree/main/sdk/src" class="api-link">
+                        <i class="fab fa-github"></i>
+                        Source Code
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 EVMore. Built for the hackathon with ❤️</p>
+        </div>
+    </footer>
+</body>
+</html> 
