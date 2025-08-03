@@ -56,7 +56,7 @@ export class EthereumHTLCClient {
     // Create direct connection strategy
     const strategy = ConnectionStrategyFactory.createEthereumStrategy('direct', {
       rpcUrl: config.rpcUrl
-    });
+    } as any);
 
     this.unifiedClient = new UnifiedEthereumHTLCClient(unifiedConfig, strategy);
   }
@@ -139,11 +139,12 @@ export class EthereumHTLCClient {
     const provider = new ethersLib.providers.JsonRpcProvider(this.legacyConfig.rpcUrl);
     const tokenContract = new ethersLib.Contract(tokenAddress, ERC20_ABI, provider);
 
-    const [name, symbol, decimals] = await Promise.all([
+    const results = await Promise.all([
       tokenContract.name(),
       tokenContract.symbol(),
       tokenContract.decimals()
     ]);
+    const [name, symbol, decimals] = results;
 
     return { name, symbol, decimals };
   }

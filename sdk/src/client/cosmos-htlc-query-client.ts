@@ -101,11 +101,12 @@ export class CosmosHTLCQueryClient {
         queryMsg
       );
 
-      if (!rawResult || !Array.isArray(rawResult.htlcs)) {
+      const result = rawResult as { htlcs?: WasmHTLC[] };
+      if (!result || !Array.isArray(result.htlcs)) {
         return [];
       }
 
-      return (rawResult.htlcs as WasmHTLC[]).map(htlc => this.mapWasmHTLCToDetails(htlc));
+      return result.htlcs.map(htlc => this.mapWasmHTLCToDetails(htlc));
     } catch (error) {
       if (error instanceof CosmosHTLCError) {
         throw error;
@@ -177,21 +178,24 @@ export class CosmosHTLCQueryClient {
     }
 
     // Safe access to logs with proper type checking
-    const logs = (result as any).logs;
+    const logs = (result as { logs?: unknown[] }).logs;
     if (!Array.isArray(logs)) {
       return null;
     }
     
     for (const log of logs) {
-      if (!log.events || !Array.isArray(log.events)) {
+      const logObj = log as { events?: unknown[] };
+      if (!logObj.events || !Array.isArray(logObj.events)) {
         continue;
       }
       
-      for (const event of log.events) {
-        if (event.type === 'wasm' && event.attributes && Array.isArray(event.attributes)) {
-          for (const attr of event.attributes) {
-            if (attr.key === 'htlc_id' && attr.value) {
-              return attr.value as string;
+      for (const event of logObj.events) {
+        const eventObj = event as { type?: string; attributes?: unknown[] };
+        if (eventObj.type === 'wasm' && eventObj.attributes && Array.isArray(eventObj.attributes)) {
+          for (const attr of eventObj.attributes) {
+            const attrObj = attr as { key?: string; value?: string };
+            if (attrObj.key === 'htlc_id' && attrObj.value) {
+              return attrObj.value;
             }
           }
         }

@@ -61,10 +61,11 @@ class MemoryStorage implements Storage {
  */
 function getStorage(): Storage {
   // Check if we're in a browser environment with localStorage
+  const globalObj = globalThis as unknown as { localStorage?: LocalStorageAPI };
   if (typeof globalThis !== 'undefined' && 
-      (globalThis as { localStorage?: LocalStorageAPI }).localStorage && 
-      typeof (globalThis as { localStorage?: LocalStorageAPI }).localStorage?.getItem === 'function') {
-    return new BrowserStorage((globalThis as { localStorage: LocalStorageAPI }).localStorage);
+      globalObj.localStorage && 
+      typeof globalObj.localStorage.getItem === 'function') {
+    return new BrowserStorage(globalObj.localStorage);
   }
   
   // Fallback to in-memory storage for Node.js or other environments
@@ -78,7 +79,8 @@ export const storage = getStorage();
  * Type guard to check if localStorage is available
  */
 export function hasLocalStorage(): boolean {
+  const globalObj = globalThis as unknown as { localStorage?: LocalStorageAPI };
   return typeof globalThis !== 'undefined' && 
-         (globalThis as { localStorage?: LocalStorageAPI }).localStorage && 
-         typeof (globalThis as { localStorage?: LocalStorageAPI }).localStorage?.getItem === 'function';
+         !!globalObj.localStorage && 
+         typeof globalObj.localStorage.getItem === 'function';
 }

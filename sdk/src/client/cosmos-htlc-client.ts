@@ -1,4 +1,4 @@
-import { SigningStargateClient, StargateClient, IndexedTx } from '@cosmjs/stargate';
+import { SigningStargateClient, StargateClient } from '@cosmjs/stargate';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { EncodeObject } from '@cosmjs/proto-signing';
 import { HTLCDetails } from '../types';
@@ -467,21 +467,24 @@ export class CosmosHTLCClient {
     }
 
     // Safe access to logs with proper type checking
-    const logs = (result as any).logs;
+    const logs = (result as { logs?: unknown[] }).logs;
     if (!Array.isArray(logs)) {
       return null;
     }
     
     for (const log of logs) {
-      if (!log.events || !Array.isArray(log.events)) {
+      const logObj = log as { events?: unknown[] };
+      if (!logObj.events || !Array.isArray(logObj.events)) {
         continue;
       }
       
-      for (const event of log.events) {
-        if (event.type === 'wasm' && event.attributes && Array.isArray(event.attributes)) {
-          for (const attr of event.attributes) {
-            if (attr.key === 'htlc_id' && attr.value) {
-              return attr.value;
+      for (const event of logObj.events) {
+        const eventObj = event as { type?: string; attributes?: unknown[] };
+        if (eventObj.type === 'wasm' && eventObj.attributes && Array.isArray(eventObj.attributes)) {
+          for (const attr of eventObj.attributes) {
+            const attrObj = attr as { key?: string; value?: string };
+            if (attrObj.key === 'htlc_id' && attrObj.value) {
+              return attrObj.value;
             }
           }
         }
