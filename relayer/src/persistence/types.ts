@@ -133,7 +133,7 @@ export interface PersistenceConfig {
 /**
  * Abstract persistence interface that can be implemented by different storage backends
  */
-export interface PersistenceProvider {
+export interface PersistenceProvider extends NodeJS.EventEmitter {
   // Connection management
   connect(): Promise<void>;
   disconnect(): Promise<void>;

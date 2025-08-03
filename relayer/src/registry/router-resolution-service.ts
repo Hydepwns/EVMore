@@ -6,7 +6,7 @@
 
 import { Logger } from 'pino';
 import { ChainRegistryClient } from './chain-registry-client';
-import { getChainsConfig } from '../../../shared/config/fusion-config';
+// Note: Shared config import removed - using local defaults
 import { EventEmitter } from 'events';
 
 export interface RouterResolutionConfig {
@@ -195,7 +195,7 @@ export class RouterResolutionService extends EventEmitter {
     }
 
     // Fall back to configuration
-    const configAddress = getChainsConfig().routerAddresses[chainId];
+    const configAddress = undefined; // No config available
     if (configAddress && !configAddress.includes('placeholder')) {
       const resolved: ResolvedRouter = {
         chainId,

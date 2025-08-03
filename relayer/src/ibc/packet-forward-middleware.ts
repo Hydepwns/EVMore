@@ -2,6 +2,7 @@ import { Logger } from 'pino';
 import { RouteDiscovery, Route } from '../routes/route-discovery';
 import { HTLCMemo } from './types';
 import { FusionConfigService } from '../config/fusion-config-service';
+import { getTimelockConfig } from '../config';
 
 export interface ForwardPath {
   channel: string;

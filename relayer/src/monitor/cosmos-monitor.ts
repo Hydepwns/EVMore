@@ -45,7 +45,7 @@ export class CosmosMonitor {
     const unifiedConfig: UnifiedCosmosConfig = {
       chainId: config.chainId,
       rpcUrl: config.rpcUrl,
-      contractAddress: config.contractAddress || '',
+      contractAddress: config.htlcContractAddress || '',
       pollingInterval: 10000,
       errorPollingInterval: 5000,
       maxBlocksPerBatch: 100,
@@ -91,6 +91,19 @@ export class CosmosMonitor {
     };
   }
 
+  // Status method for health checks
+  getStatus(): any {
+    const health = this.unifiedMonitor.getHealth();
+    return {
+      running: health.running,
+      lastBlock: health.lastBlock,
+      currentBlock: health.currentBlock,
+      blocksBehind: health.blocksBehind,
+      errorCount: health.errorCount,
+      uptime: health.uptime
+    };
+  }
+
   /**
    * Register event handler
    */
@@ -98,8 +111,10 @@ export class CosmosMonitor {
     eventType: string, 
     handler: (event: CosmosHTLCEvent) => Promise<void>
   ): void {
-    this.unifiedMonitor.onHTLCEvent(eventType as any, async (event: UnifiedHTLCEvent) => {
-      await handler(this.convertEventToLegacy(event));
+    // Convert unified event to legacy format
+    this.unifiedMonitor.onHTLCEvent(eventType, async (unifiedEvent) => {
+      const legacyEvent = this.convertEventToLegacy(unifiedEvent);
+      await handler(legacyEvent);
     });
   }
 
@@ -129,6 +144,37 @@ export class CosmosMonitor {
    */
   resetToHeight(height: number): void {
     this.unifiedMonitor.resetToHeight(height);
+  }
+
+  /**
+   * Event-based monitoring (for fusion mode)
+   */
+  on(event: string, handler: (data: any) => void): void {
+    switch (event) {
+      case 'htlc:created':
+        this.unifiedMonitor.onHTLCEvent('created', async (unifiedEvent) => {
+          const legacyEvent = this.convertEventToLegacy(unifiedEvent);
+          await handler(legacyEvent);
+        });
+        break;
+      case 'htlc:withdrawn':
+        this.unifiedMonitor.onHTLCEvent('withdrawn', async (unifiedEvent) => {
+          const legacyEvent = this.convertEventToLegacy(unifiedEvent);
+          await handler(legacyEvent);
+        });
+        break;
+      case 'htlc:refunded':
+        this.unifiedMonitor.onHTLCEvent('refunded', async (unifiedEvent) => {
+          const legacyEvent = this.convertEventToLegacy(unifiedEvent);
+          await handler(legacyEvent);
+        });
+        break;
+      case 'error':
+        this.unifiedMonitor.on('error', handler);
+        break;
+      default:
+        throw new Error(`Unknown event type: ${event}`);
+    }
   }
 
   /**

@@ -129,15 +129,19 @@ function adaptServicesConfig(
   const registryConfig: RegistryServiceConfig = {
     cacheTimeout: registry.cacheTimeout,
     refreshInterval: registry.refreshInterval,
-    baseUrl: registry.baseUrl
+    maxRetries: 3, // Default
+    endpoints: {
+      chainRegistry: registry.baseUrl,
+      ibcData: registry.baseUrl
+    }
   };
 
   const recoveryConfig: RecoveryServiceConfig = {
     enabled: recovery.enabled,
     checkInterval: recovery.checkInterval,
     refundBufferSeconds: recovery.refundBuffer,
-    maxRetries: 3, // Default
-    retryDelayMs: 5000 // Default
+    maxRecoveryAttempts: 3, // Default
+    emergencyContact: undefined
   };
 
   return {
@@ -158,7 +162,8 @@ function createDefaultSecurityConfig(): SecurityConfig {
     },
     encryption: {
       algorithm: 'aes-256-gcm',
-      keyRotationDays: 30
+      keyDerivation: 'pbkdf2',
+      iterations: 10000
     },
     rateLimit: {
       enabled: true,
@@ -168,10 +173,10 @@ function createDefaultSecurityConfig(): SecurityConfig {
     },
     firewall: {
       enabled: false,
+      allowedOrigins: [],
       allowedIPs: [],
       blockedIPs: [],
-      maxFailedAttempts: 5,
-      blockDurationMs: 300000 // 5 minutes
+      maxConnectionsPerIP: 10
     }
   };
 }
@@ -185,23 +190,28 @@ function adaptMonitoringConfig(general: LegacyGeneralConfig): MonitoringConfig {
       enabled: general.enableMetrics,
       port: general.port + 1, // Metrics on port + 1
       path: '/metrics',
-      collectDefaultMetrics: true,
       prefix: 'evmore_relayer_'
     },
     tracing: {
       enabled: false, // Default off
       serviceName: 'evmore-relayer',
-      serviceVersion: '1.0.0'
+      sampleRate: 0.1
     },
     healthCheck: {
       enabled: true,
-      path: '/health',
       interval: 30000,
-      timeout: 5000
+      timeout: 5000,
+      endpoints: ['/health']
     },
     alerts: {
       enabled: false, // Default off
-      channels: []
+      channels: [],
+      thresholds: {
+        errorRate: 0.05,
+        responseTime: 5000,
+        diskUsage: 0.9,
+        memoryUsage: 0.8
+      }
     }
   };
 }
@@ -209,7 +219,13 @@ function adaptMonitoringConfig(general: LegacyGeneralConfig): MonitoringConfig {
 /**
  * Helper functions
  */
-function mapLogLevel(level: string): LogLevel {
+function mapLogLevel(level: string | LogLevel): LogLevel {
+  // If it's already a LogLevel enum, return it
+  if (typeof level === 'number') {
+    return level as LogLevel;
+  }
+  
+  // If it's a string, map it
   const mapping: Record<string, LogLevel> = {
     'debug': LogLevel.DEBUG,
     'info': LogLevel.INFO,
@@ -292,7 +308,7 @@ export function adaptToLegacyConfig(fusion: FusionConfig): LegacyAppConfig {
       addressPrefix: cosmos.addressPrefix
     },
     chainRegistry: {
-      baseUrl: fusion.services.registry.baseUrl || '',
+      baseUrl: fusion.services.registry.endpoints.chainRegistry || '',
       cacheTimeout: fusion.services.registry.cacheTimeout,
       refreshInterval: fusion.services.registry.refreshInterval
     },

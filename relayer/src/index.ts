@@ -10,6 +10,7 @@ import { Config } from './config/index';
 import { ChainRegistryClient } from './registry/chain-registry-client';
 import { RouterResolutionService } from './registry/router-resolution-service';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
+import { GasPrice } from '@cosmjs/stargate';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { initializeMetrics } from './monitoring/prometheus-metrics';
 import { createMetricsServer } from './monitoring/metrics-server';
@@ -107,7 +108,7 @@ async function main() {
     const cosmWasmClient = await SigningCosmWasmClient.connectWithSigner(
       config.cosmos.rpcUrl,
       wallet,
-      { gasPrice: config.cosmos.gasPrice }
+      { gasPrice: GasPrice.fromString(config.cosmos.gasPrice) }
     );
 
     // Initialize registry services
@@ -134,7 +135,10 @@ async function main() {
     const routeDiscovery = new RouteDiscovery(config.chainRegistry, logger);
     await routeDiscovery.initialize(routerResolver, registryClient);
     
-    const relayService = new RelayService(config, logger, routeDiscovery, persistenceManager);
+    const relayService = new RelayService(config, logger, routeDiscovery, {
+      ethereum: config.ethereum.htlcContractAddress,
+      cosmos: config.cosmos.htlcContractAddress
+    });
     const recoveryService = new RecoveryService(config, logger);
 
     // Initialize relay service
@@ -152,7 +156,7 @@ async function main() {
       await relayService.handleEthereumHTLC(event);
     });
     
-    cosmosMonitor.onHTLCEvent(async (event) => {
+    cosmosMonitor.onHTLCEvent('created', async (event) => {
       await relayService.handleCosmosHTLC(event);
     });
 
@@ -175,10 +179,12 @@ async function main() {
 
     const apiRateLimiter = new APIRateLimiter(logger);
     const securityManager = new SecurityManager({
-      ddosProtection,
-      rateLimiter: apiRateLimiter,
-      enableCircuitBreaker: true,
-      emergencyThreshold: 0.9
+      enableRateLimit: true,
+      enableIPBlocking: true,
+      enableSuspiciousActivityDetection: true,
+      maxFailedAttempts: 5,
+      blockDurationMs: 300000, // 5 minutes
+      suspiciousThreshold: 0.8
     }, logger);
 
     // Setup API server for health checks and metrics

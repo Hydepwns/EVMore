@@ -59,7 +59,7 @@ export class PooledCosmosMonitor {
     // Convert legacy config to unified config
     const unifiedConfig: UnifiedCosmosConfig = {
       chainId: config.chainId,
-      contractAddress: config.contractAddress || '',
+      contractAddress: config.htlcContractAddress || '',
       pollingInterval: 10000,
       errorPollingInterval: 5000,
       maxBlocksPerBatch: 100,

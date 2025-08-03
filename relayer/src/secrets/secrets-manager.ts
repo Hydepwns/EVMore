@@ -109,8 +109,7 @@ export class SecretsManager extends EventEmitter {
           provider: this.primaryProvider.getProviderInfo().type,
           success: true,
           metadata: {
-            duration: Date.now() - startTime,
-            extractedKey: key
+            duration: Date.now() - startTime
           }
         });
         return result;
@@ -135,9 +134,7 @@ export class SecretsManager extends EventEmitter {
           provider: provider.getProviderInfo().type,
           success: true,
           metadata: {
-            duration: Date.now() - startTime,
-            extractedKey: key,
-            usedFallback: true
+            duration: Date.now() - startTime
           }
         });
 
@@ -168,8 +165,7 @@ export class SecretsManager extends EventEmitter {
       success: false,
       error: lastError?.message,
       metadata: {
-        duration: Date.now() - startTime,
-        extractedKey: key
+        duration: Date.now() - startTime
       }
     });
 
@@ -289,8 +285,20 @@ export class SecretsManager extends EventEmitter {
     this.emit('secrets_refreshed');
   }
 
-  getStats(): Record<string, SecretsManagerStats> {
-    const stats: Record<string, SecretsManagerStats> = {};
+  getStats(): Record<string, {
+    secretsLoaded: number;
+    cacheHits: number;
+    cacheMisses: number;
+    errors: number;
+    lastError?: string;
+  }> {
+    const stats: Record<string, {
+      secretsLoaded: number;
+      cacheHits: number;
+      cacheMisses: number;
+      errors: number;
+      lastError?: string;
+    }> = {};
     
     for (const [type, provider] of this.providers.entries()) {
       stats[type] = provider.getStats();
@@ -330,6 +338,12 @@ export class SecretsManager extends EventEmitter {
       healthy: this.isHealthy(),
       providers
     };
+  }
+
+  // Close method for graceful shutdown
+  async close(): Promise<void> {
+    // Implementation would go here
+    this.logger.info('Secrets manager closed');
   }
 
   // Convenience methods for standard secrets

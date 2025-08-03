@@ -107,14 +107,14 @@ export function createValidationMiddleware(logger: Logger) {
         ip: req.ip
       }, 'Input validation failed');
       
-      metrics.recordError('input_validation', 'validation_failed', req.path);
+      metrics.recordRpcError('input_validation', 'validation_failed', req.path);
       
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array().map(err => ({
-          field: err.param,
+          field: (err as any).param || 'unknown',
           message: err.msg,
-          value: process.env.NODE_ENV === 'development' ? err.value : undefined
+          value: process.env.NODE_ENV === 'development' ? (err as any).value : undefined
         }))
       });
     }

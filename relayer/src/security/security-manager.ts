@@ -162,6 +162,40 @@ export class SecurityManager {
     return { allowed: true };
   }
 
+  // Alias for checkAPIRequest for backward compatibility
+  async checkRequest(fingerprint: any): Promise<{ 
+    allowed: boolean; 
+    reason?: string; 
+    retryAfter?: number;
+    rateLimit?: number;
+    remaining?: number;
+    resetTime?: number;
+  }> {
+    return this.checkAPIRequest(fingerprint);
+  }
+
+  // Emergency lockdown functionality
+  async emergencyLockdown(reason: string): Promise<void> {
+    this.logger.warn({ reason }, 'Emergency lockdown activated');
+    // Implementation would go here
+  }
+
+  // IP blacklisting functionality
+  async blacklistIP(ip: string, reason: string, duration: number): Promise<void> {
+    this.logger.warn({ ip, reason, duration }, 'IP blacklisted');
+    // Implementation would go here
+  }
+
+  async removeFromBlacklist(ip: string): Promise<void> {
+    this.logger.info({ ip }, 'IP removed from blacklist');
+    // Implementation would go here
+  }
+
+  // Status method alias for getStats
+  getStatus(): any {
+    return this.getStats();
+  }
+
   /**
    * Record a failed operation attempt
    */

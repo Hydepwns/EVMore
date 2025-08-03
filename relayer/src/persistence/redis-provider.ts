@@ -46,8 +46,6 @@ export class RedisPersistenceProvider extends EventEmitter implements Persistenc
       port: config.redis.port,
       password: config.redis.password,
       db: config.redis.db || 0,
-      retryDelayOnFailover: config.redis.retryDelay || 100,
-      maxRetriesPerRequest: config.redis.maxRetries || 3,
       enableOfflineQueue: config.redis.enableOfflineQueue ?? true,
       lazyConnect: true,
       connectionName: 'fusion-relayer'

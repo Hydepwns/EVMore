@@ -89,7 +89,7 @@ export class ArchivalManager extends EventEmitter {
     maxJobDuration: 3600000, // 1 hour
   };
 
-  constructor(logger: Logger, config?: Partial<typeof this.config>) {
+  constructor(logger: Logger, config?: Partial<ArchivalManager['config']>) {
     super();
     this.logger = logger.child({ component: 'ArchivalManager' });
     this.config = { ...this.config, ...config };

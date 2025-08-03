@@ -3,6 +3,32 @@
 import axios from 'axios';
 import { Command } from 'commander';
 
+// Type definitions for API responses
+interface HealthResponse {
+  status: 'healthy' | 'unhealthy';
+  systemHealth: boolean;
+  monitors: {
+    ethereum: {
+      running: boolean;
+      lastBlock: string;
+    };
+    cosmos: {
+      running: boolean;
+      lastHeight: string;
+    };
+  };
+  recovery: {
+    running: boolean;
+  };
+  enhanced?: {
+    errorRecovery?: {
+      hasOpenCircuits: boolean;
+      openCircuits: string[];
+      emergencyStop: boolean;
+    };
+  };
+}
+
 const program = new Command();
 
 // Configuration
@@ -146,7 +172,7 @@ monitorCommand
         console.clear();
         console.log(`🔍 System Health Monitor - ${timestamp}\n`);
         
-        const health = response.data;
+        const health = response.data as HealthResponse;
         console.log(`Overall Status: ${health.status === 'healthy' ? '✅ HEALTHY' : '❌ UNHEALTHY'}`);
         console.log(`System Health: ${health.systemHealth ? '✅ HEALTHY' : '❌ UNHEALTHY'}`);
         console.log(`\nMonitors:`);
@@ -164,7 +190,7 @@ monitorCommand
         
       } catch (error) {
         console.clear();
-        console.log(`❌ Failed to fetch health status: ${error instanceof Error ? error.message : error}`);
+        console.log(`❌ Failed to fetch health status: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
     
@@ -172,7 +198,9 @@ monitorCommand
     await checkHealth();
     
     // Set up interval
-    const interval = setInterval(checkHealth, 5000);
+    const interval = setInterval(() => {
+      void checkHealth();
+    }, 5000);
     
     // Handle Ctrl+C
     process.on('SIGINT', () => {

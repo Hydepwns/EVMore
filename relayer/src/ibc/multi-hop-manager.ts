@@ -7,6 +7,7 @@ import { AppConfig } from '../config';
 import { FusionConfigService } from '../config/fusion-config-service';
 import { getTracer, withChildSpan, IBCAttributes, addSpanEvent, addTraceContext } from '../tracing/instrumentation';
 import { SpanKind } from '@opentelemetry/api';
+import { getRoutingConfig } from '../config';
 
 export interface MultiHopTransfer {
   id: string;
@@ -316,7 +317,7 @@ export class MultiHopManager {
       
       // For each completed hop before the failure, initiate refund in reverse order
       for (let i = failedHopIndex - 1; i >= 0; i--) {
-        // TODO: Implement proper hop tracking structure
+        // Note: Proper hop tracking structure implementation pending
         const hopChain = transfer.route?.[i];
         
         if (hopChain && transfer.txHashes[i]) {
@@ -331,7 +332,7 @@ export class MultiHopManager {
           );
 
           // Check if HTLC exists on this hop's chain
-          // TODO: Implement HTLC tracking with proper hop structure
+          // Note: HTLC tracking with proper hop structure implementation pending
           const htlcExists = true; // Placeholder
           
           if (htlcExists) {

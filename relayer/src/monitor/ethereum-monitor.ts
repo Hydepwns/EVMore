@@ -66,9 +66,9 @@ export class EthereumMonitor {
     
     // Convert legacy config to unified config
     const unifiedConfig: UnifiedEthereumConfig = {
-      chainId: config.chainId,
+      chainId: config.chainId.toString(),
       rpcUrl: config.rpcUrl,
-      htlcContract: config.htlcContract,
+      htlcContract: config.htlcContractAddress,
       pollingInterval: 5000,
       errorPollingInterval: 10000,
       maxBlocksPerBatch: 2000,
@@ -111,6 +111,19 @@ export class EthereumMonitor {
       blocksBehind: health.blocksBehind,
       errorCount: health.errorCount,
       lastError: health.lastError,
+      uptime: health.uptime
+    };
+  }
+
+  // Status method for health checks
+  getStatus(): any {
+    const health = this.unifiedMonitor.getHealth();
+    return {
+      running: health.running,
+      lastBlock: health.lastBlock,
+      currentBlock: health.currentBlock,
+      blocksBehind: health.blocksBehind,
+      errorCount: health.errorCount,
       uptime: health.uptime
     };
   }
@@ -160,6 +173,78 @@ export class EthereumMonitor {
         transactionHash: event.transactionHash || ''
       });
     });
+  }
+
+  /**
+   * Event-based monitoring (for fusion mode)
+   */
+  on(event: string, handler: (data: any) => void): void {
+    switch (event) {
+      case 'htlc:created':
+        this.unifiedMonitor.onHTLCEvent('created', async (unifiedEvent) => {
+          const legacyEvent = this.convertCreatedEventToLegacy(unifiedEvent as UnifiedCreatedEvent);
+          await handler(legacyEvent);
+        });
+        break;
+      case 'htlc:withdrawn':
+        this.unifiedMonitor.onHTLCEvent('withdrawn', async (unifiedEvent) => {
+          const legacyEvent = this.convertWithdrawnEventToLegacy(unifiedEvent as UnifiedWithdrawnEvent);
+          await handler(legacyEvent);
+        });
+        break;
+      case 'htlc:refunded':
+        this.unifiedMonitor.onHTLCEvent('refunded', async (unifiedEvent) => {
+          const legacyEvent = this.convertRefundedEventToLegacy(unifiedEvent as UnifiedRefundedEvent);
+          await handler(legacyEvent);
+        });
+        break;
+      case 'error':
+        this.unifiedMonitor.on('error', handler);
+        break;
+      default:
+        throw new Error(`Unknown event type: ${event}`);
+    }
+  }
+
+  /**
+   * Convert unified created event to legacy format
+   */
+  private convertCreatedEventToLegacy(event: UnifiedCreatedEvent): HTLCCreatedEvent {
+    return {
+      htlcId: event.htlcId,
+      sender: event.sender,
+      token: event.token,
+      amount: event.amount,
+      hashlock: event.hashlock,
+      timelock: event.timelock,
+      targetChain: event.targetChain,
+      targetAddress: event.targetAddress,
+      blockNumber: event.blockNumber,
+      transactionHash: event.transactionHash
+    };
+  }
+
+  /**
+   * Convert unified withdrawn event to legacy format
+   */
+  private convertWithdrawnEventToLegacy(event: UnifiedWithdrawnEvent): HTLCWithdrawnEvent {
+    return {
+      htlcId: event.htlcId,
+      secret: event.secret,
+      blockNumber: event.blockNumber,
+      transactionHash: event.transactionHash
+    };
+  }
+
+  /**
+   * Convert unified refunded event to legacy format
+   */
+  private convertRefundedEventToLegacy(event: UnifiedRefundedEvent): HTLCRefundedEvent {
+    return {
+      htlcId: event.htlcId,
+      blockNumber: event.blockNumber,
+      transactionHash: event.transactionHash
+    };
   }
 
   /**

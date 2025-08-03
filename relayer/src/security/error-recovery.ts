@@ -24,7 +24,8 @@ export enum OperationType {
   CONTRACT_CALL = 'contract_call',
   ROUTE_DISCOVERY = 'route_discovery',
   HTLC_CREATION = 'htlc_creation',
-  RECOVERY_CHECK = 'recovery_check'
+  RECOVERY_CHECK = 'recovery_check',
+  RELAY = 'relay'
 }
 
 export class ErrorRecoveryManager {

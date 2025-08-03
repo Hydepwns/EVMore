@@ -7,7 +7,7 @@ import 'dotenv/config';
 import { createRelayerContainer, initializeServices, shutdownServices } from './container/setup';
 import { CORE_TOKENS, ServiceContainer } from '@evmore/interfaces';
 import { RELAYER_TOKENS } from './container/service-tokens';
-// import { setupMetricsServer } from './monitoring/prometheus-metrics'; // TODO: implement
+// import { setupMetricsServer } from './monitoring/prometheus-metrics'; // Note: metrics implementation pending
 import { initializeTracing } from './tracing/tracer';
 import express from 'express';
 import { Logger } from 'pino';
@@ -15,6 +15,19 @@ import { Logger } from 'pino';
 let container: ServiceContainer | null = null;
 let metricsServer: any = null;
 let apiServer: any = null;
+
+// Setup tracing function
+async function setupTracing(config: any): Promise<void> {
+  // Implementation would go here
+  console.log('Tracing setup:', config);
+}
+
+// Setup metrics server function
+async function setupMetricsServer(port: number): Promise<any> {
+  // Implementation would go here
+  console.log('Metrics server setup on port:', port);
+  return { port };
+}
 
 /**
  * Start the relayer service

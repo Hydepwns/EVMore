@@ -371,9 +371,6 @@ export class RecoveryService {
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        // Record recovery attempt
-        metrics.recordRecoveryAttempt('refund', 'ethereum', 'pending');
-        
         await this.refundEthereumHTLC(htlcId);
         
         // Record successful recovery
@@ -442,8 +439,6 @@ export class RecoveryService {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
         this.logger.debug({ chainId, htlcId, attempt }, 'Attempting Cosmos HTLC refund');
-        metrics.recordRecoveryAttempt('refund', chainId, 'pending');
-        
         await this.refundCosmosHTLC(chainId, htlcId);
         
         // Record successful recovery

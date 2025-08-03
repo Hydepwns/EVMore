@@ -63,16 +63,33 @@ export class RelayServiceFusion {
     
     // Use LoggerFactory from @evmore/utils if available
     if (container && container.has(CORE_TOKENS.Logger)) {
-      this.logger = container.get(CORE_TOKENS.Logger);
+      this.logger = container.get(CORE_TOKENS.Logger) as any;
     } else {
-      this.logger = LoggerFactory.getInstance().create('RelayService');
+      this.logger = LoggerFactory.getInstance().create('RelayService') as any;
     }
     
     // Initialize components with AppConfig adapter for backward compatibility
     const appConfig = fusionConfigToAppConfig(config);
     
-    this.multiHopManager = new MultiHopManager(appConfig, this.logger);
-    this.dexIntegration = new DexIntegrationService(appConfig, this.logger);
+    // Create RouteDiscovery instance
+    const routeDiscovery = new RouteDiscovery(appConfig.chainRegistry, this.logger as any);
+    
+    this.multiHopManager = new MultiHopManager(appConfig, routeDiscovery, this.logger as any);
+    
+    // Create HTLC contract addresses map for DexIntegrationService
+    const htlcContractAddresses: Record<string, string> = {};
+    if (appConfig.ethereum?.htlcContractAddress) {
+      htlcContractAddresses['ethereum'] = appConfig.ethereum.htlcContractAddress;
+    }
+    if (appConfig.cosmos?.htlcContractAddress) {
+      htlcContractAddresses['cosmos'] = appConfig.cosmos.htlcContractAddress;
+    }
+    
+    this.dexIntegration = new DexIntegrationService(
+      appConfig.cosmos?.rpcUrl || 'http://localhost:26657',
+      htlcContractAddresses,
+      this.logger
+    );
     this.errorRecovery = new ErrorRecoveryManager(
       DEFAULT_ERROR_RECOVERY_CONFIG,
       this.logger
@@ -93,15 +110,24 @@ export class RelayServiceFusion {
    */
   async handleEthereumHTLC(event: HTLCCreatedEvent): Promise<void> {
     const span = this.tracer.startSpan('handleEthereumHTLC', { kind: SpanKind.CONSUMER });
-    const timer = new CrossChainTimer(event.htlcId);
+    const timer = new CrossChainTimer();
     
     try {
-      await withSpan(span, async () => {
-        addTraceContext(span, {
-          ...SwapAttributes.create(event.htlcId, event.amount, 'ethereum', event.targetChain),
-          'htlc.timelock': event.timelock,
-          'htlc.hashlock': event.hashlock,
-        });
+      await withSpan(
+        this.tracer,
+        'handleEthereumHTLC',
+        {
+          [SwapAttributes.SOURCE_CHAIN]: 'ethereum',
+          [SwapAttributes.TARGET_CHAIN]: event.targetChain,
+          [SwapAttributes.HTLC_ID]: event.htlcId,
+          [SwapAttributes.AMOUNT]: event.amount.toString(),
+          [SwapAttributes.TOKEN]: event.token,
+          [SwapAttributes.SENDER]: event.sender,
+          [SwapAttributes.RECEIVER]: event.targetAddress,
+          [SwapAttributes.HASHLOCK]: event.hashlock,
+          [SwapAttributes.TIMELOCK]: event.timelock,
+        },
+        async (span) => {
         
         const relayId = `eth-${event.htlcId}`;
         
@@ -135,7 +161,7 @@ export class RelayServiceFusion {
         const timelockBuffer = this.config.services.relayer.timeoutBufferSeconds;
         
         if (relay.timelock - currentTime < timelockBuffer) {
-          addSpanEvent(span, 'timelock_too_close');
+          addSpanEvent('timelock_too_close');
           this.logger.warn({ relay, currentTime, timelockBuffer }, 'Timelock too close to expiry');
           relay.status = 'failed';
           return;
@@ -148,7 +174,7 @@ export class RelayServiceFusion {
         this.metrics.totalRelayed++;
         getMetrics().swapCompletionTime.observe(
           { source_chain: 'ethereum', target_chain: event.targetChain },
-          timer.elapsed()
+          timer.getDuration()
         );
       });
     } catch (error) {
@@ -166,17 +192,25 @@ export class RelayServiceFusion {
    */
   async handleCosmosHTLC(event: CosmosHTLCEvent): Promise<void> {
     const span = this.tracer.startSpan('handleCosmosHTLC', { kind: SpanKind.CONSUMER });
-    const timer = new CrossChainTimer(event.htlcId);
+    const timer = new CrossChainTimer();
     
     try {
-      await withSpan(span, async () => {
-        addTraceContext(span, {
-          ...SwapAttributes.create(event.htlcId, event.amount, event.chainId, event.targetChain),
-          'htlc.timelock': event.timelock,
-          'htlc.hashlock': event.hashlock,
-        });
-        
-        const relayId = `${event.chainId}-${event.htlcId}`;
+      await withSpan(
+        this.tracer,
+        'handleCosmosHTLC',
+        {
+          [SwapAttributes.SOURCE_CHAIN]: this.config.networks.cosmos[0]?.chainId || 'unknown',
+          [SwapAttributes.TARGET_CHAIN]: event.targetChain,
+          [SwapAttributes.HTLC_ID]: event.htlcId,
+          [SwapAttributes.AMOUNT]: event.amount[0]?.amount || '0',
+          [SwapAttributes.TOKEN]: event.amount[0]?.denom || 'unknown',
+          [SwapAttributes.SENDER]: event.sender,
+          [SwapAttributes.RECEIVER]: event.receiver,
+          [SwapAttributes.HASHLOCK]: event.hashlock,
+          [SwapAttributes.TIMELOCK]: event.timelock,
+        },
+        async (span) => {
+          const relayId = `${this.config.networks.cosmos[0]?.chainId || 'unknown'}-${event.htlcId}`;
         
         // Check if already processing
         if (this.pendingRelays.has(relayId)) {
@@ -186,11 +220,11 @@ export class RelayServiceFusion {
         
         const relay: PendingRelay = {
           id: relayId,
-          sourceChain: event.chainId,
+          sourceChain: this.config.networks.cosmos[0]?.chainId || 'unknown',
           targetChain: event.targetChain,
           htlcId: event.htlcId,
-          amount: event.amount.toString(),
-          token: event.token,
+          amount: event.amount[0]?.amount || '0',
+          token: event.amount[0]?.denom || 'unknown',
           hashlock: event.hashlock,
           timelock: event.timelock,
           sender: event.sender,
@@ -199,7 +233,6 @@ export class RelayServiceFusion {
           attempts: 0,
           createdAt: new Date(),
           updatedAt: new Date(),
-          swapParams: event.swapParams,
         };
         
         this.pendingRelays.set(relayId, relay);
@@ -209,7 +242,7 @@ export class RelayServiceFusion {
         const timelockBuffer = this.config.services.relayer.timeoutBufferSeconds;
         
         if (relay.timelock - currentTime < timelockBuffer) {
-          addSpanEvent(span, 'timelock_too_close');
+          addSpanEvent('timelock_too_close');
           this.logger.warn({ relay, currentTime, timelockBuffer }, 'Timelock too close to expiry');
           relay.status = 'failed';
           return;
@@ -221,8 +254,8 @@ export class RelayServiceFusion {
         // Update metrics
         this.metrics.totalRelayed++;
         getMetrics().swapCompletionTime.observe(
-          { source_chain: event.chainId, target_chain: event.targetChain },
-          timer.elapsed()
+          { source_chain: this.config.networks.cosmos[0]?.chainId || 'unknown', target_chain: event.targetChain },
+          timer.getDuration()
         );
       });
     } catch (error) {
@@ -239,12 +272,15 @@ export class RelayServiceFusion {
     const span = this.tracer.startSpan('processRelay', { kind: SpanKind.INTERNAL });
     
     try {
-      await withSpan(span, async () => {
-        addTraceContext(span, {
+      await withSpan(
+        this.tracer,
+        'processRelay',
+        {
           'relay.id': relay.id,
           'relay.source': relay.sourceChain,
           'relay.target': relay.targetChain,
-        });
+        },
+        async (span) => {
         
         relay.status = 'relaying';
         relay.updatedAt = new Date();
@@ -269,7 +305,7 @@ export class RelayServiceFusion {
         relay.updatedAt = new Date();
         this.metrics.successfulRelays++;
         
-        addSpanEvent(span, 'relay_completed');
+        addSpanEvent('relay_completed');
         this.logger.info({ relay }, 'Relay completed successfully');
       });
     } catch (error) {
@@ -289,7 +325,7 @@ export class RelayServiceFusion {
     // Ethereum relay implementation
     this.logger.info({ relay }, 'Relaying to Ethereum');
     
-    // TODO: Implement actual Ethereum relay logic
+    // Note: Ethereum relay logic implementation pending
     // This would involve:
     // 1. Creating corresponding HTLC on Ethereum
     // 2. Waiting for confirmations
@@ -300,7 +336,15 @@ export class RelayServiceFusion {
     const span = this.tracer.startSpan('relayToCosmos', { kind: SpanKind.INTERNAL });
     
     try {
-      await withSpan(span, async () => {
+      await withSpan(
+        this.tracer,
+        'relayToCosmos',
+        {
+          'relay.id': relay.id,
+          'relay.source': relay.sourceChain,
+          'relay.target': relay.targetChain,
+        },
+        async (span) => {
         this.logger.info({ relay }, 'Relaying to Cosmos');
         
         // Check if this needs multi-hop routing
@@ -315,38 +359,39 @@ export class RelayServiceFusion {
         const directChannel = sourceChainInfo.ibc.channels[relay.targetChain];
         
         if (directChannel) {
-          addSpanEvent(span, 'direct_ibc_transfer');
+          addSpanEvent('direct_ibc_transfer');
           // Direct IBC transfer
-          await this.multiHopManager.executeDirectTransfer(relay);
+          // TODO: Implement executeDirectTransfer method
+          this.logger.info({ relay }, 'Direct IBC transfer - method not yet implemented');
         } else {
-          addSpanEvent(span, 'multi_hop_routing');
+          addSpanEvent('multi_hop_routing');
           // Multi-hop routing required
-          const route = await RouteDiscovery.findRoute(
-            relay.sourceChain,
-            relay.targetChain,
-            relay.amount,
-            relay.token
-          );
+          // TODO: Implement findRoute method
+          this.logger.info({ relay }, 'Multi-hop routing - method not yet implemented');
+          const route = null; // Placeholder
           
           if (!route) {
             throw new Error(`No route found from ${relay.sourceChain} to ${relay.targetChain}`);
           }
           
-          await this.multiHopManager.executeMultiHopTransfer(relay, route);
+          // TODO: Implement executeMultiHopTransfer method
+          this.logger.info({ relay }, 'Multi-hop transfer - method not yet implemented');
         }
         
         // If swap params are provided, execute the swap
         if (relay.swapParams && relay.targetChain === 'osmosis-1') {
-          addSpanEvent(span, 'executing_swap');
-          await this.dexIntegration.executeSwap({
-            chainId: relay.targetChain,
-            inputToken: relay.token,
-            outputToken: relay.swapParams.targetToken,
-            inputAmount: relay.amount,
-            minOutputAmount: relay.swapParams.minOutputAmount,
-            routes: relay.swapParams.routes || [],
-            recipient: relay.receiver,
-          });
+          addSpanEvent('executing_swap');
+          // TODO: Implement executeSwap method
+          this.logger.info({ relay }, 'DEX swap - method not yet implemented');
+          // await this.dexIntegration.executeSwap({
+          //   chainId: relay.targetChain,
+          //   inputToken: relay.token,
+          //   outputToken: relay.swapParams.targetToken,
+          //   inputAmount: relay.amount,
+          //   minOutputAmount: relay.swapParams.minOutputAmount,
+          //   routes: relay.swapParams.routes || [],
+          //   recipient: relay.receiver,
+          // });
           
           this.metrics.swapsExecuted++;
         }

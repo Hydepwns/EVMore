@@ -9,6 +9,7 @@ import { AppConfig } from './index';
 
 /**
  * Convert legacy AppConfig to new FusionConfig format
+ * @deprecated This function is not currently used and may be removed
  */
 export function appConfigToFusionConfig(appConfig: AppConfig): FusionConfig {
   return {
@@ -187,6 +188,7 @@ export function appConfigToFusionConfig(appConfig: AppConfig): FusionConfig {
 
 /**
  * Convert FusionConfig back to AppConfig for backward compatibility
+ * @deprecated This function is not currently used and may be removed
  */
 export function fusionConfigToAppConfig(fusionConfig: FusionConfig): AppConfig {
   const cosmosChain = fusionConfig.networks.cosmos[0]; // Primary cosmos chain

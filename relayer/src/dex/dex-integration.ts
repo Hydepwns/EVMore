@@ -1,6 +1,7 @@
 import { OsmosisClient, SwapRoute, SwapEstimate } from './osmosis-client';
 import { ethers } from 'ethers';
 import { BigNumber } from 'bignumber.js';
+import { Logger } from 'pino';
 
 export interface CrossChainSwapParams {
   sourceChain: string;
@@ -24,15 +25,19 @@ export interface SwapExecutionPlan {
 export class DexIntegrationService {
   private osmosisClient: OsmosisClient;
   private htlcContracts: Map<string, any>;
-  
+  private logger: Logger;
+  private monitoringInterval?: NodeJS.Timeout;
+
   constructor(
     osmosisRpc: string,
-    htlcContractAddresses: Record<string, string>
+    htlcContractAddresses: Record<string, string>,
+    logger: Logger
   ) {
-    this.osmosisClient = new OsmosisClient(osmosisRpc);
+    this.osmosisClient = new OsmosisClient(osmosisRpc, logger);
     this.htlcContracts = new Map();
-    
-    // Initialize HTLC contracts for each chain
+    this.logger = logger;
+
+    // Initialize HTLC contract addresses
     Object.entries(htlcContractAddresses).forEach(([chain, address]) => {
       this.htlcContracts.set(chain, address);
     });
@@ -125,7 +130,7 @@ export class DexIntegrationService {
     routes: SwapRoute[],
     targetPrice: string,
     callback: (priceUpdate: any) => void
-  ): Promise<void> {
+  ): Promise<() => void> {
     const checkPrice = async () => {
       try {
         // Get current price for the route
@@ -155,8 +160,16 @@ export class DexIntegrationService {
     // Then check periodically
     const interval = setInterval(checkPrice, 10000); // Every 10 seconds
 
+    // Store interval for cleanup
+    this.monitoringInterval = interval;
+    
     // Return cleanup function
-    return () => clearInterval(interval);
+    return () => {
+      if (this.monitoringInterval) {
+        clearInterval(this.monitoringInterval);
+        this.monitoringInterval = undefined;
+      }
+    };
   }
 
   /**

@@ -29,7 +29,7 @@ import {
   createPoolConfigFromEnv,
   initializeDefaultMetricsCollector,
   PoolManagerConfig
-} from '../../shared/connection-pool';
+} from '@evmore/connection-pool';
 
 // Load environment variables
 config();
@@ -161,7 +161,7 @@ async function main() {
 
   try {
     // Load configuration
-    const config = Config.load();
+    const config = await Config.load();
     logger.info({ config: config.general }, 'Configuration loaded');
 
     // Initialize connection pool manager
@@ -224,8 +224,9 @@ async function main() {
     }, 'Persistence layer initialized');
 
     // Start metrics server
+    const metricsPort = parseInt(process.env.METRICS_PORT || '9090');
     const metricsServer = createMetricsServer({
-      port: parseInt(process.env.METRICS_PORT || '9090'),
+      port: metricsPort,
       host: process.env.METRICS_HOST || '0.0.0.0',
       path: '/metrics',
       enableHealthCheck: true,
@@ -286,7 +287,7 @@ async function main() {
     // Initialize services with pooled connections
     const ethereumMonitor = new PooledEthereumMonitor(
       ethereumPool,
-      config.ethereum.htlcContractAddress,
+      config.ethereum,
       logger
     );
     
@@ -296,7 +297,10 @@ async function main() {
     const routeDiscovery = new RouteDiscovery(config.chainRegistry, logger);
     await routeDiscovery.initialize(routerResolver, registryClient);
     
-    const relayService = new RelayService(config, logger, routeDiscovery, persistenceManager);
+    const relayService = new RelayService(config, logger, routeDiscovery, {
+      ethereum: config.ethereum.htlcContractAddress,
+      cosmos: config.cosmos.htlcContractAddress
+    });
     const recoveryService = new RecoveryService(config, logger);
 
     // Initialize relay service
@@ -324,7 +328,7 @@ async function main() {
       // Update relay status if needed
     });
     
-    cosmosMonitor.onHTLCEvent(async (event) => {
+    cosmosMonitor.onHTLCEvent('created', async (event) => {
       await relayService.handleCosmosHTLC(event);
     });
 
@@ -347,10 +351,12 @@ async function main() {
 
     const apiRateLimiter = new APIRateLimiter(logger);
     const securityManager = new SecurityManager({
-      ddosProtection,
-      rateLimiter: apiRateLimiter,
-      enableCircuitBreaker: true,
-      emergencyThreshold: 0.9
+      enableRateLimit: true,
+      enableIPBlocking: true,
+      enableSuspiciousActivityDetection: true,
+      maxFailedAttempts: 5,
+      blockDurationMs: 300000, // 5 minutes
+      suspiciousThreshold: 0.8
     }, logger);
 
     // Setup API server for health checks and metrics
@@ -476,7 +482,7 @@ async function main() {
       ethereumNetwork,
       cosmosChainId: chainId,
       ethereumContract: config.ethereum.htlcContractAddress,
-      cosmosContract: config.cosmos.htlcContract,
+      cosmosContract: config.cosmos.htlcContractAddress,
       poolsActive: poolManager.getStats().totalConnections,
       metricsPort,
       apiPort: port

@@ -121,7 +121,7 @@ export class AdvancedDDoSShield extends EventEmitter {
       const mitigation = this.determineMitigation(assessment);
       
       // 3. Apply mitigation
-      if (mitigation.type !== 'rate_limit' || mitigation.type === 'emergency') {
+      if (mitigation.type !== 'rate_limit') {
         this.blockedRequests++;
         this.recordMitigation(mitigation);
         

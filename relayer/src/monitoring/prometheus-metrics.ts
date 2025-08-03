@@ -253,6 +253,17 @@ export class PrometheusMetrics {
     }
   }
 
+  recordRecoveryCheck(
+    status: 'started' | 'completed',
+    durationSeconds?: number
+  ): void {
+    this.recoveryAttempts.labels('check', 'all', status, 'none').inc();
+    
+    if (durationSeconds !== undefined) {
+      this.recoveryDuration.labels('check', 'all', status).observe(durationSeconds);
+    }
+  }
+
   /**
    * Update circuit breaker state
    */

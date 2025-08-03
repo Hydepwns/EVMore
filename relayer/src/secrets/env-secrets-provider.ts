@@ -252,13 +252,19 @@ export class EnvSecretsProvider extends EventEmitter implements SecretsProviderI
     };
   }
 
-  getStats(): SecretsManagerStats {
+  getStats(): {
+    secretsLoaded: number;
+    cacheHits: number;
+    cacheMisses: number;
+    errors: number;
+    lastError?: string;
+  } {
     return {
-      ...this.stats,
-      cacheHitRate: this.stats.totalRequests > 0 
-        ? this.stats.cacheHits / this.stats.totalRequests 
-        : 0,
-      cachedSecretsCount: this.cache.size
+      secretsLoaded: this.stats.cachedSecretsCount,
+      cacheHits: this.stats.cacheHits,
+      cacheMisses: this.stats.cacheMisses,
+      errors: this.stats.failedRequests,
+      lastError: undefined
     };
   }
 

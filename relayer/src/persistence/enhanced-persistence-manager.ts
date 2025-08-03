@@ -204,7 +204,7 @@ export class EnhancedPersistenceManager extends EventEmitter {
   } {
     const components = {
       persistence: this.persistenceManager.isHealthy(),
-      postgres: this.pgConnectionManager?.getHealthyEndpoints().length > 0 ?? true,
+      postgres: this.pgConnectionManager?.getHealthyEndpoints().length > 0 || true,
       redis: this.redisConnectionManager?.getStats().some(s => s.healthy) ?? true,
       migrations: true, // Migrations are typically one-time operations
       backup: this.backupManager ? true : true, // If enabled, assume healthy unless we have specific checks
@@ -260,7 +260,7 @@ export class EnhancedPersistenceManager extends EventEmitter {
 
       // Run archival policies
       if (options.archival && this.archivalManager) {
-        results.archival = await this.archivalManager.cleanupOldBackups();
+        results.archival = await this.archivalManager.performCleanup();
       }
 
       // General cleanup

@@ -627,9 +627,15 @@ export class DDoSProtectionSystem extends EventEmitter {
   /**
    * Destroy the DDoS protection system
    */
-  destroy(): void {
+  stop(): void {
     clearInterval(this.analysisInterval);
     clearInterval(this.cleanupInterval);
     this.removeAllListeners();
+    this.logger.info('DDoS protection system stopped');
+  }
+
+  destroy(): void {
+    this.stop();
+    this.logger.info('DDoS protection system destroyed');
   }
 }

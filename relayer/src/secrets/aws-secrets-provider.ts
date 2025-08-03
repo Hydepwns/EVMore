@@ -249,12 +249,18 @@ export class AWSSecretsProvider extends EventEmitter implements SecretsProviderI
 
       try {
         // Try to update existing secret first
-        await this.client.updateSecret(params as SecretsManager.UpdateSecretRequest).promise();
+        await this.client.updateSecret({
+          SecretId: name,
+          SecretString: value
+        }).promise();
         this.logger.info({ name }, 'Updated existing secret in AWS Secrets Manager');
       } catch (error: any) {
         if (error.code === 'ResourceNotFoundException') {
           // Secret doesn't exist, create it
-          await this.client.createSecret(params as SecretsManager.CreateSecretRequest).promise();
+          await this.client.createSecret({
+            Name: name,
+            SecretString: value
+          }).promise();
           this.logger.info({ name }, 'Created new secret in AWS Secrets Manager');
         } else {
           throw error;
@@ -311,13 +317,19 @@ export class AWSSecretsProvider extends EventEmitter implements SecretsProviderI
     };
   }
 
-  getStats(): SecretsManagerStats {
+  getStats(): {
+    secretsLoaded: number;
+    cacheHits: number;
+    cacheMisses: number;
+    errors: number;
+    lastError?: string;
+  } {
     return {
-      ...this.stats,
-      cacheHitRate: this.stats.totalRequests > 0 
-        ? this.stats.cacheHits / this.stats.totalRequests 
-        : 0,
-      cachedSecretsCount: this.cache.size
+      secretsLoaded: this.stats.cachedSecretsCount,
+      cacheHits: this.stats.cacheHits,
+      cacheMisses: this.stats.cacheMisses,
+      errors: this.stats.failedRequests,
+      lastError: undefined
     };
   }
 

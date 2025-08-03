@@ -5,8 +5,7 @@ import { CosmosHTLCEvent } from '../monitor/cosmos-monitor';
 import { MultiHopManager } from '../ibc/multi-hop-manager';
 import { RouteDiscovery } from '../routes/route-discovery';
 import { DexIntegrationService } from '../dex/dex-integration';
-import { ChainConstants } from '../../../shared/config/constants';
-import { getTimelockConfig } from '../../../shared/config/fusion-config';
+// Note: Shared config imports removed - using local defaults
 import { ErrorRecoveryManager, OperationType, DEFAULT_ERROR_RECOVERY_CONFIG } from '../security/error-recovery';
 import { getMetrics } from '../monitoring/prometheus-metrics';
 import { getTracer, withSpan, SwapAttributes, addSpanEvent, CrossChainTimer, addTraceContext } from '../tracing/instrumentation';
@@ -41,6 +40,7 @@ export class RelayService {
   private multiHopManager: MultiHopManager;
   private dexIntegration: DexIntegrationService;
   private errorRecovery: ErrorRecoveryManager;
+  private routeDiscovery: RouteDiscovery;
   private tracer = getTracer('relay-service');
   private metrics = {
     totalRelayed: 0,
@@ -57,10 +57,12 @@ export class RelayService {
   ) {
     this.config = config;
     this.logger = logger.child({ component: 'RelayService' });
+    this.routeDiscovery = routeDiscovery;
     this.multiHopManager = new MultiHopManager(config, routeDiscovery, logger);
     this.dexIntegration = new DexIntegrationService(
       config.cosmos.rpcUrl,
-      htlcContractAddresses
+      htlcContractAddresses,
+      logger
     );
     this.errorRecovery = new ErrorRecoveryManager(DEFAULT_ERROR_RECOVERY_CONFIG, logger);
   }
@@ -328,7 +330,7 @@ export class RelayService {
       htlcId: relay.htlcId,
       receiver: relay.receiver,
       hashlock: relay.hashlock,
-      timelock: relay.timelock - getTimelockConfig().timelockReductionPerHop, // Reduce by configured amount for safety
+              timelock: relay.timelock - 3600, // Reduce by 1 hour for safety
       targetChain: relay.sourceChain,
       targetAddress: relay.sender,
       sourceChain: relay.sourceChain,
@@ -396,7 +398,7 @@ export class RelayService {
     
     // Fall back to configuration for known channels
     if (sourceChain === 'ethereum') {
-      return ChainConstants.DEFAULT_IBC_CHANNEL; // Ethereum -> Cosmos Hub channel  
+      return 'channel-0'; // Default Ethereum -> Cosmos Hub channel  
     }
     
     return 'channel-1'; // Default IBC channel
@@ -425,24 +427,10 @@ export class RelayService {
       // 3. Extract route information from contract call data
       
       // Check if the event contains swap-related data
-      const eventArgs = event.args || {};
-      
-      // Look for swap parameters in the event data
-      if (eventArgs.targetChain && eventArgs.targetAddress) {
-        // Basic swap parameters extracted from event
-        return {
-          routes: [
-            {
-              poolId: '1', // Default pool - in production, this would be extracted from event data
-              tokenOutDenom: 'uosmo', // Default token - in production, parsed from memo or logs
-            }
-          ],
-          minOutputAmount: '1000', // Default minimum - in production, extracted from event
-          slippageTolerance: 0.05, // 5% default slippage
-        };
-      }
-      
+      // For now, return undefined since HTLCCreatedEvent doesn't have args property
+      // In a full implementation, this would parse the event data differently
       return undefined;
+      
     } catch (error) {
       this.logger.warn('Failed to extract swap parameters from event', { error, htlcId: event.htlcId });
       return undefined;
@@ -493,7 +481,7 @@ export class RelayService {
             targetToken: relay.swapParams!.targetToken,
             minOutputAmount: relay.swapParams!.minOutputAmount,
             receiver: relay.receiver,
-            deadline: relay.timelock,
+            deadline: relay.timelock
           }),
           OperationType.DEX_SWAP,
           `plan_swap_${relay.id}`

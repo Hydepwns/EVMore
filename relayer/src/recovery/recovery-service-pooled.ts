@@ -8,7 +8,7 @@ import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { Logger } from 'pino';
 import { AppConfig } from '../config/index';
 import { getMetrics } from '../monitoring/prometheus-metrics';
-import { ConnectionPoolManager } from '../../../shared/connection-pool';
+import { ConnectionPoolManager } from '@evmore/connection-pool';
 
 export interface ExpiredHTLC {
   chain: string;
@@ -340,9 +340,6 @@ export class PooledRecoveryService {
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        // Record recovery attempt
-        metrics.recordRecoveryAttempt('refund', 'ethereum', 'pending');
-        
         await this.refundEthereumHTLC(contract, htlcId);
         
         // Record successful recovery
@@ -410,9 +407,6 @@ export class PooledRecoveryService {
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        // Record recovery attempt
-        metrics.recordRecoveryAttempt('refund', chainConfig.chainId, 'pending');
-        
         await this.refundCosmosHTLC(client, chainConfig, htlcId);
         
         // Record successful recovery

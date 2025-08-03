@@ -16,6 +16,25 @@ import { DexIntegrationService } from '../dex/dex-integration';
 import { MultiHopManager } from '../ibc/multi-hop-manager';
 // import { Database } from 'pg';
 
+// Type definitions for infrastructure services
+interface DatabaseService {
+  query: (text: string, params?: unknown[]) => Promise<unknown>;
+  connect: () => Promise<void>;
+  end: () => Promise<void>;
+}
+
+interface MetricsServerService {
+  start: () => Promise<void>;
+  stop: () => Promise<void>;
+  getMetrics: () => Promise<string>;
+}
+
+interface TracingProviderService {
+  startSpan: (name: string) => unknown;
+  endSpan: (span: unknown) => void;
+  addEvent: (span: unknown, name: string, attributes?: Record<string, unknown>) => void;
+}
+
 /**
  * Relayer-specific service tokens
  */
@@ -37,9 +56,9 @@ export const RELAYER_TOKENS = {
   DexIntegration: createServiceToken<DexIntegrationService>('DexIntegration'),
   
   // Infrastructure
-  Database: createServiceToken<any>('Database'), // Database type from pg
-  MetricsServer: createServiceToken<any>('MetricsServer'),
-  TracingProvider: createServiceToken<any>('TracingProvider'),
+  Database: createServiceToken<DatabaseService>('Database'), // Database type from pg
+  MetricsServer: createServiceToken<MetricsServerService>('MetricsServer'),
+  TracingProvider: createServiceToken<TracingProviderService>('TracingProvider'),
 } as const;
 
 /**
@@ -49,15 +68,15 @@ export interface ServiceMetadata {
   name: string;
   version: string;
   description: string;
-  dependencies: ServiceToken<any>[];
-  optional?: ServiceToken<any>[];
+  dependencies: ServiceToken<unknown>[];
+  optional?: ServiceToken<unknown>[];
   lifecycle?: 'singleton' | 'transient' | 'scoped';
 }
 
 /**
  * Service metadata registry
  */
-export const SERVICE_METADATA = new Map<ServiceToken<any>, ServiceMetadata>([
+export const SERVICE_METADATA = new Map<ServiceToken<unknown>, ServiceMetadata>([
   [RELAYER_TOKENS.RelayService, {
     name: 'RelayService',
     version: '1.0.0',

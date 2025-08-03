@@ -18,7 +18,7 @@ import { EthereumMonitor } from '../monitor/ethereum-monitor';
 import { CosmosMonitor } from '../monitor/cosmos-monitor';
 import { RecoveryService } from '../recovery/recovery-service';
 import { ChainRegistryClient } from '../registry/chain-registry-client';
-import { RouterResolutionService } from '../registry/router-resolution-service';
+import { RouterResolutionService, RouterResolutionConfig } from '../registry/router-resolution-service';
 import { DexIntegrationService } from '../dex/dex-integration';
 import { MultiHopManager } from '../ibc/multi-hop-manager';
 
@@ -71,7 +71,12 @@ export async function createRelayerContainer(): Promise<ServiceContainer> {
   
   container.registerSingleton(RELAYER_TOKENS.RouterResolver, async () => {
     const chainRegistry = container.get(RELAYER_TOKENS.ChainRegistry);
-    const routerConfig = { timeout: 30000, retries: 3 }; // Default config
+    const routerConfig: RouterResolutionConfig = {
+      enableDynamicLookup: true,
+      cacheTimeout: 300000, // 5 minutes
+      retryAttempts: 3,
+      retryDelay: 1000 // 1 second
+    };
     const service = new RouterResolutionService(chainRegistry, routerConfig, pinoLogger);
     return service;
   });
@@ -84,7 +89,20 @@ export async function createRelayerContainer(): Promise<ServiceContainer> {
   });
   
   container.registerSingleton(RELAYER_TOKENS.DexIntegration, () => {
-    return new DexIntegrationService(appConfig, pinoLogger);
+    // Create HTLC contract addresses map from config
+    const htlcContractAddresses: Record<string, string> = {};
+    if (appConfig.ethereum?.htlcContractAddress) {
+      htlcContractAddresses['ethereum'] = appConfig.ethereum.htlcContractAddress;
+    }
+    if (appConfig.cosmos?.htlcContractAddress) {
+      htlcContractAddresses['cosmos'] = appConfig.cosmos.htlcContractAddress;
+    }
+    
+    return new DexIntegrationService(
+      appConfig.cosmos?.rpcUrl || 'http://localhost:26657',
+      htlcContractAddresses,
+      pinoLogger
+    );
   });
   
   return container;
@@ -111,7 +129,9 @@ export async function initializeServices(container: ServiceContainer): Promise<v
   await recoveryService.start();
   
   const chainRegistry = container.get(RELAYER_TOKENS.ChainRegistry);
-  await chainRegistry.initialize();
+  // TODO: Create proper SigningCosmWasmClient instance
+  const mockCosmWasmClient = {} as any; // Placeholder
+  await chainRegistry.initialize(mockCosmWasmClient);
   
   const multiHopManager = container.get(RELAYER_TOKENS.MultiHopManager);
   await multiHopManager.initialize();

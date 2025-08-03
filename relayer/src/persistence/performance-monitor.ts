@@ -132,7 +132,7 @@ export class PerformanceMonitor extends EventEmitter {
     maxHistorySize: 2880 // 24 hours of 30-second intervals
   };
 
-  constructor(logger: Logger, config?: Partial<typeof this.config>) {
+  constructor(logger: Logger, config?: Partial<PerformanceMonitor['config']>) {
     super();
     this.logger = logger.child({ component: 'PerformanceMonitor' });
     this.config = { ...this.config, ...config };

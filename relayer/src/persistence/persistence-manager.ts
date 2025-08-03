@@ -40,7 +40,7 @@ export class PersistenceManager extends EventEmitter {
   private config: PersistenceManagerConfig;
   private logger: Logger;
   private healthCheckTimer?: NodeJS.Timeout;
-  private isHealthy: boolean = false;
+  private _isHealthy: boolean = false;
   private lastHealthCheck: Date = new Date(0);
   private retryCount: number = 0;
 
@@ -63,7 +63,7 @@ export class PersistenceManager extends EventEmitter {
   async initialize(): Promise<void> {
     try {
       await this.provider.connect();
-      this.isHealthy = true;
+      this._isHealthy = true;
       this.retryCount = 0;
       this.startHealthCheck();
       
@@ -75,7 +75,7 @@ export class PersistenceManager extends EventEmitter {
       this.emit('initialized');
     } catch (error) {
       this.logger.error({ error }, 'Failed to initialize persistence manager');
-      this.isHealthy = false;
+      this._isHealthy = false;
       
       if (this.config.autoRetry && this.retryCount < this.config.maxRetries!) {
         this.scheduleRetry();
@@ -91,13 +91,27 @@ export class PersistenceManager extends EventEmitter {
     
     try {
       await this.provider.disconnect();
-      this.isHealthy = false;
+      this._isHealthy = false;
       this.emit('shutdown');
       this.logger.info('Persistence manager shut down');
     } catch (error) {
       this.logger.error({ error }, 'Error during persistence manager shutdown');
       throw error;
     }
+  }
+
+  // Close method for graceful shutdown
+  async close(): Promise<void> {
+    await this.shutdown();
+  }
+
+  // Health status method
+  getHealthStatus(): any {
+    return {
+      healthy: this.isHealthy(),
+      mode: this.getMode(),
+      lastHealthCheck: this.getLastHealthCheck()
+    };
   }
 
   // Provider delegation with error handling and metrics
@@ -251,7 +265,7 @@ export class PersistenceManager extends EventEmitter {
 
   // Health and monitoring
   isHealthy(): boolean {
-    return this.isHealthy && this.provider.isConnected();
+    return this._isHealthy && this.provider.isConnected();
   }
 
   getMode(): PersistenceMode {
@@ -375,7 +389,7 @@ export class PersistenceManager extends EventEmitter {
 
       // Mark as unhealthy if critical operations fail
       if (['saveRelay', 'updateRelay', 'saveChainState'].includes(operation)) {
-        this.isHealthy = false;
+        this._isHealthy = false;
       }
 
       throw error;
@@ -384,19 +398,19 @@ export class PersistenceManager extends EventEmitter {
 
   private setupEventHandlers(): void {
     this.provider.on('connected', () => {
-      this.isHealthy = true;
+      this._isHealthy = true;
       this.retryCount = 0;
       this.emit('connected');
     });
 
     this.provider.on('disconnected', () => {
-      this.isHealthy = false;
+      this._isHealthy = false;
       this.emit('disconnected');
     });
 
     this.provider.on('error', (error) => {
       this.logger.error({ error }, 'Persistence provider error');
-      this.isHealthy = false;
+      this._isHealthy = false;
       this.emit('error', error);
 
       if (this.config.autoRetry && this.retryCount < this.config.maxRetries!) {
@@ -445,8 +459,8 @@ export class PersistenceManager extends EventEmitter {
       const isHealthy = await this.provider.ping();
       this.lastHealthCheck = new Date();
       
-      if (isHealthy !== this.isHealthy) {
-        this.isHealthy = isHealthy;
+      if (isHealthy !== this._isHealthy) {
+        this._isHealthy = isHealthy;
         
         if (isHealthy) {
           this.logger.info('Persistence provider health restored');
@@ -464,7 +478,7 @@ export class PersistenceManager extends EventEmitter {
       return isHealthy;
     } catch (error) {
       this.logger.error({ error }, 'Health check error');
-      this.isHealthy = false;
+      this._isHealthy = false;
       this.emit('health_degraded');
       return false;
     }

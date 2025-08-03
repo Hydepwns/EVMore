@@ -532,8 +532,8 @@ export class BackupManager extends EventEmitter {
         options.excludeTables.forEach((table: string) => args.push(`--exclude-table=${table}`));
       }
 
-      const pgDump = spawn('pg_dump', args, {
-        env: { ...process.env, PGPASSWORD: this.pgPool!.options.password }
+      const pgDump = spawn('pg_dump', args as string[], {
+        env: { ...process.env, PGPASSWORD: String(this.pgPool!.options.password) }
       });
 
       let outputStream = createWriteStream(outputPath);
@@ -541,14 +541,20 @@ export class BackupManager extends EventEmitter {
       if (this.config.compression.enabled) {
         const gzip = createGzip({ level: this.config.compression.level });
         outputStream = createWriteStream(compressedPath);
-        pgDump.stdout.pipe(gzip).pipe(outputStream);
+        if (pgDump.stdout) {
+          pgDump.stdout.pipe(gzip).pipe(outputStream);
+        }
       } else {
-        pgDump.stdout.pipe(outputStream);
+        if (pgDump.stdout) {
+          pgDump.stdout.pipe(outputStream);
+        }
       }
 
-      pgDump.stderr.on('data', (data) => {
-        this.logger.debug({ data: data.toString() }, 'pg_dump stderr');
-      });
+      if (pgDump.stderr) {
+        pgDump.stderr.on('data', (data) => {
+          this.logger.debug({ data: data.toString() }, 'pg_dump stderr');
+        });
+      }
 
       pgDump.on('close', (code) => {
         if (code === 0) {

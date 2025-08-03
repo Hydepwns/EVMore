@@ -362,7 +362,7 @@ export class LogAlertChannel implements AlertChannel {
     }, `ALERT: ${alert.message}`);
   }
 
-  private getLogLevel(severity: AlertSeverity): keyof Logger {
+  private getLogLevel(severity: AlertSeverity): 'error' | 'warn' | 'info' {
     switch (severity) {
       case AlertSeverity.CRITICAL:
       case AlertSeverity.ERROR:

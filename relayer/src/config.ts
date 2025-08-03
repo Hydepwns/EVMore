@@ -1,6 +1,4 @@
-// TODO: Fix these imports - shared directory doesn't exist
-// import { loadConstants, ContractConstants } from '../../shared/config/constants';
-// import { getTimelockConfig } from '../../shared/config/fusion-config';
+// Note: Shared config imports removed - using local defaults
 import { LogLevel } from '@evmore/interfaces';
 
 // Default constants to replace missing ContractConstants
@@ -22,14 +20,28 @@ const DEFAULT_CONSTANTS = {
 };
 
 // Simple getTimelockConfig replacement
-function getTimelockConfig() {
+export function getTimelockConfig() {
   return {
     ethereum: DEFAULT_CONSTANTS.CASCADE_TIMELOCK_ETHEREUM,
     cosmos: DEFAULT_CONSTANTS.CASCADE_TIMELOCK_COSMOS,
     buffer: DEFAULT_CONSTANTS.TIMELOCK_BUFFER,
     cacheTimeout: 300, // 5 minutes
     timeoutBuffer: DEFAULT_CONSTANTS.TIMELOCK_BUFFER,
-    recoveryBuffer: 7200 // 2 hours
+    recoveryBuffer: 7200, // 2 hours
+    timelockReductionPerHop: 300 // 5 minutes per hop
+  };
+}
+
+// Simple getRoutingConfig replacement
+export function getRoutingConfig() {
+  return {
+    maxRouteHops: 3,
+    maxRoutesToExplore: 10,
+    minimalAmount: '1000',
+    poolDiscoveryRange: {
+      start: 0,
+      end: 100
+    }
   };
 }
 
@@ -93,8 +105,7 @@ export interface AppConfig {
 }
 
 export class Config {
-  // TODO: Fix loadConstants
-  // private static configConstants = loadConstants();
+  // Note: Using default constants instead of shared config
   
   static load(): AppConfig {
     const config: AppConfig = {

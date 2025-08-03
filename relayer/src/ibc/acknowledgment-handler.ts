@@ -18,11 +18,13 @@ export interface TimeoutEvent {
 export class AcknowledgmentHandler {
   private logger: Logger;
   private multiHopManager: MultiHopManager;
+  private config: any; // AppConfig
   private pendingAcks: Map<string, AcknowledgmentEvent> = new Map();
   private timeouts: Map<string, TimeoutEvent> = new Map();
 
-  constructor(multiHopManager: MultiHopManager, logger: Logger) {
+  constructor(multiHopManager: MultiHopManager, config: any, logger: Logger) {
     this.multiHopManager = multiHopManager;
+    this.config = config;
     this.logger = logger.child({ component: 'AcknowledgmentHandler' });
   }
 

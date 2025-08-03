@@ -594,8 +594,7 @@ export class RedisConnectionManager extends EventEmitter {
           connectTimeout: this.config.acquireTimeoutMillis,
           lazyConnect: true
         },
-        enableOfflineQueue: false,
-        maxRetriesPerRequest: 3
+        enableOfflineQueue: false
       });
 
       const endpointKey = 'cluster';

@@ -1,4 +1,6 @@
-import { SigningStargateClient } from '@cosmjs/stargate';
+import { SigningCosmWasmClient, CosmWasmClient } from '@cosmjs/cosmwasm-stargate';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { Logger } from 'pino';
 import { Coin } from '@cosmjs/proto-signing';
 import { BigNumber } from 'bignumber.js';
 
@@ -29,23 +31,25 @@ export interface SpotPriceResponse {
 }
 
 export class OsmosisClient {
-  private client: SigningStargateClient | null = null;
+  private client: SigningCosmWasmClient | CosmWasmClient;
+  private logger: Logger;
   private rpcEndpoint: string;
-  private chainId: string;
 
-  constructor(rpcEndpoint: string, chainId: string = 'osmosis-1') {
-    this.rpcEndpoint = rpcEndpoint;
-    this.chainId = chainId;
+  constructor(rpcUrl: string, logger: Logger) {
+    this.logger = logger;
+    this.rpcEndpoint = rpcUrl;
+    // Initialize client - will be connected when needed
+    this.client = {} as SigningCosmWasmClient;
   }
 
   async connect(signer?: any): Promise<void> {
     if (signer) {
-      this.client = await SigningStargateClient.connectWithSigner(
+      this.client = await SigningCosmWasmClient.connectWithSigner(
         this.rpcEndpoint,
         signer
       );
     } else {
-      this.client = await SigningStargateClient.connect(this.rpcEndpoint);
+      this.client = await SigningCosmWasmClient.connect(this.rpcEndpoint);
     }
   }
 
@@ -213,13 +217,16 @@ export class OsmosisClient {
       };
 
       // Execute the swap
-      const result = await this.client.signAndBroadcast(
-        senderAddress,
-        [msg],
-        'auto'
-      );
-
-      return result.transactionHash;
+      if ('signAndBroadcast' in this.client) {
+        const result = await this.client.signAndBroadcast(
+          senderAddress,
+          [msg],
+          'auto'
+        );
+        return result.transactionHash;
+      } else {
+        throw new Error('Signing client required for this operation');
+      }
     } catch (error) {
       throw new Error(`Failed to execute swap: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

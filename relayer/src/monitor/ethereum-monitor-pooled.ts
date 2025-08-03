@@ -71,8 +71,9 @@ export class PooledEthereumMonitor {
     
     // Convert legacy config to unified config
     const unifiedConfig: UnifiedEthereumConfig = {
-      chainId: config.chainId,
-      htlcContract: config.htlcContract,
+      chainId: config.chainId.toString(),
+      rpcUrl: config.rpcUrl,
+      htlcContract: config.htlcContractAddress,
       pollingInterval: 5000,
       errorPollingInterval: 10000,
       maxBlocksPerBatch: 2000,

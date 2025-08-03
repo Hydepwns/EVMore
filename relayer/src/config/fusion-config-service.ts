@@ -3,7 +3,7 @@
  * This is the new standard configuration for the relayer
  */
 
-import { FusionConfig, ConfigLoader, loadConfig, getConfig as getFusionConfig } from '@evmore/config';
+import { FusionConfig, ConfigLoader, loadConfig } from '@evmore/config';
 import { AppConfig } from './index';
 import { appConfigToFusionConfig, fusionConfigToAppConfig } from './config-adapter';
 import * as fs from 'fs';
@@ -43,7 +43,7 @@ export class FusionConfigService {
       // Fall back to legacy AppConfig and convert
       const { Config } = await import('./index');
       const appConfig = await Config.load();
-      this.config = appConfigToFusionConfig(appConfig);
+      this.config = appConfigToFusionConfig(appConfig) as FusionConfig;
     }
     
     if (!this.config) {
@@ -103,7 +103,7 @@ export class FusionConfigService {
   /**
    * Get network configuration
    */
-  getNetworkConfig(type: 'ethereum' | 'cosmos'): any {
+  getNetworkConfig(type: 'ethereum' | 'cosmos'): FusionConfig['networks']['ethereum'] | FusionConfig['networks']['cosmos'] {
     if (!this.config) {
       throw new Error('Configuration not loaded. Call loadConfig() first.');
     }
