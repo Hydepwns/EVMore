@@ -6,11 +6,7 @@ import {
   ChainRegistryConfig,
   RelayerConfig,
   RecoveryConfig,
-  GeneralConfig,
-  toLegacyEthereumConfig,
-  toLegacyCosmosConfig,
-  adaptLegacyEthereumConfig,
-  adaptLegacyCosmosConfig
+  GeneralConfig
 } from '@evmore/utils';
 
 // Legacy interfaces for backward compatibility
@@ -37,6 +33,29 @@ export interface CosmosConfig {
   addressPrefix: string;
 }
 
+// Legacy routing and timelock config interfaces
+export interface RoutingConfig {
+  maxRouteHops: number;
+  maxRoutesToExplore: number;
+  minimalAmount: string;
+  poolDiscoveryRange: {
+    start: number;
+    end: number;
+  };
+}
+
+export interface TimelockConfig {
+  timelockReductionPerHop: number;
+  timeoutBuffer: number;
+  maxDuration: number;
+  cascade: {
+    ethereum: number;
+    cosmosHop1: number;
+    cosmosHop2: number;
+    finalHop: number;
+  };
+}
+
 // Re-export unified types
 export type UnifiedEthereumConfig = EthereumNetworkConfig;
 export type UnifiedCosmosConfig = CosmosNetworkConfig;
@@ -55,7 +74,6 @@ export interface AppConfig {
 }
 
 import { ConfigValidator } from './validator';
-import { appConfigToFusionConfig, fusionConfigToAppConfig } from './config-adapter';
 
 export class Config {
   static async load(): Promise<AppConfig> {
@@ -162,6 +180,33 @@ export class Config {
       throw new Error(`Configuration validation failed:\n${errors.join('\n')}`);
     }
   }
+}
+
+// Legacy configuration functions for backward compatibility
+export function getRoutingConfig(): RoutingConfig {
+  return {
+    maxRouteHops: parseInt(process.env.MAX_ROUTE_HOPS || '3'),
+    maxRoutesToExplore: parseInt(process.env.MAX_ROUTES_TO_EXPLORE || '10'),
+    minimalAmount: process.env.MINIMAL_AMOUNT || '1000000', // 1 token in smallest unit
+    poolDiscoveryRange: {
+      start: parseInt(process.env.POOL_DISCOVERY_START || '0'),
+      end: parseInt(process.env.POOL_DISCOVERY_END || '100')
+    }
+  };
+}
+
+export function getTimelockConfig(): TimelockConfig {
+  return {
+    timelockReductionPerHop: parseInt(process.env.TIMELOCK_REDUCTION_PER_HOP || '300'), // 5 minutes
+    timeoutBuffer: parseInt(process.env.TIMEOUT_BUFFER || '600'), // 10 minutes
+    maxDuration: parseInt(process.env.MAX_TIMELOCK_DURATION || '3600'), // 1 hour
+    cascade: {
+      ethereum: parseInt(process.env.ETHEREUM_TIMELOCK || '1800'), // 30 minutes
+      cosmosHop1: parseInt(process.env.COSMOS_HOP1_TIMELOCK || '1200'), // 20 minutes
+      cosmosHop2: parseInt(process.env.COSMOS_HOP2_TIMELOCK || '900'), // 15 minutes
+      finalHop: parseInt(process.env.FINAL_HOP_TIMELOCK || '600') // 10 minutes
+    }
+  };
 }
 
 // Export validator for external use

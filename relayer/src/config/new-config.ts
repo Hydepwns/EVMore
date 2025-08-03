@@ -56,7 +56,7 @@ export class RelayerConfigManager {
       });
       
       // Fallback to legacy configuration
-      const legacyConfig = LegacyConfig.load();
+      const legacyConfig = await LegacyConfig.load();
       this.fusionConfig = adaptLegacyConfig(legacyConfig);
       this.compatibilityLayer = new ConfigCompatibilityLayer(this.fusionConfig);
       

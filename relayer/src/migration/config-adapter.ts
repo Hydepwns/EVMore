@@ -49,8 +49,8 @@ export function adaptLegacyConfig(legacy: LegacyAppConfig): FusionConfig {
  */
 function adaptEnvironmentConfig(general: LegacyGeneralConfig): EnvironmentConfig {
   return {
-    name: (process.env.NODE_ENV as any) || 'development',
-    debug: general.logLevel === 'debug',
+    name: (process.env.NODE_ENV as 'development' | 'staging' | 'production' | 'test') || 'development',
+    debug: general.logLevel === LogLevel.DEBUG,
     logLevel: mapLogLevel(general.logLevel)
   };
 }
@@ -281,7 +281,7 @@ export function adaptToLegacyConfig(fusion: FusionConfig): LegacyAppConfig {
   
   return {
     general: {
-      logLevel: fusion.environment.logLevel.toString().toLowerCase(),
+      logLevel: fusion.environment.logLevel,
       port: fusion.monitoring.metrics.port - 1, // Reverse the port calculation
       enableMetrics: fusion.monitoring.metrics.enabled,
       shutdownTimeout: 30000 // Default
