@@ -15,6 +15,13 @@ This project extends the 1inch Fusion+ protocol to support cross-chain swaps bet
 - **MEV Protection**: Commit-reveal scheme and threshold encryption
 - **Automatic Recovery**: Timeout handling and refund mechanisms
 
+### 🎉 Stretch Goals Completed
+
+- **Frontend UI** ✅: Modern React interface with Tailwind CSS for intuitive cross-chain swaps
+- **Partial Fills** ✅: Advanced order splitting functionality with percentage-based execution
+
+See [STRETCH_GOALS_SUMMARY.md](STRETCH_GOALS_SUMMARY.md) for details.
+
 ## 📁 Project Structure
 
 ```bash
@@ -44,6 +51,13 @@ EVMore/
 │   │   ├── client/            # Client interfaces
 │   │   ├── migration/         # Backward compatibility
 │   │   └── utils/             # Domain utilities
+│   └── package.json
+│
+├── frontend/                   # React web interface (Stretch Goal ✅)
+│   ├── src/
+│   │   ├── components/        # UI components
+│   │   ├── pages/            # Route pages
+│   │   └── services/         # API integration
 │   └── package.json
 │
 ├── tests/                      # Comprehensive test suites
@@ -100,6 +114,10 @@ npm run deploy:local
 
 # Run relayer in development mode
 npm run dev:relayer
+
+# Start frontend (Stretch Goal)
+cd frontend && npm run dev
+# Open http://localhost:5173
 ```
 
 ## ⚡ Features
