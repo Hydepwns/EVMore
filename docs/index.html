@@ -3,24 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVMore - Cross-Chain HTLC Protocol Documentation</title>
-    <meta name="description" content="EVMore: Revolutionary cross-chain HTLC protocol for seamless token swaps between Ethereum and Cosmos ecosystems">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>EVMore - Cross-Chain HTLC Protocol</title>
+    <meta name="description" content="EVMore - Advanced cross-chain HTLC protocol for secure token swaps">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
     <style>
-        :root {
-            --primary-color: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary-color: #10b981;
-            --accent-color: #f59e0b;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
-            --border-color: #e5e7eb;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        
         * {
             margin: 0;
             padding: 0;
@@ -28,272 +15,124 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: var(--text-primary);
-            background-color: var(--bg-primary);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-        
-        .header {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4rem 0 2rem;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-        
-        .header p {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-        }
-        
-        .demo-banner {
-            background: var(--accent-color);
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .demo-banner a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .demo-banner a:hover {
-            text-decoration: underline;
-        }
-        
-        .docs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            padding: 3rem 0;
-        }
-        
-        .doc-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.3s ease;
-            display: block;
-        }
-        
-        .doc-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            border-color: var(--primary-color);
-        }
-        
-        .doc-icon {
-            width: 3rem;
-            height: 3rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            border-radius: 0.75rem;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
         }
         
-        .doc-card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
         }
         
-        .doc-card p {
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-        
-        .doc-card .link-text {
-            color: var(--primary-color);
-            font-weight: 500;
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
         }
         
-        .section-title {
-            font-size: 2.5rem;
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
             font-weight: 700;
-            text-align: center;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
             margin-bottom: 2rem;
-            color: var(--text-primary);
+            opacity: 0.9;
         }
         
-        .footer {
-            background: var(--bg-secondary);
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border-color);
+        .description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            opacity: 0.8;
         }
         
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .docs-grid {
-                grid-template-columns: 1fr;
-            }
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .status h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .status p {
+            opacity: 0.8;
+        }
+        
+        .links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn.primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .btn.primary:hover {
+            background: white;
         }
     </style>
-
-<!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png">
-
-<!-- Apple Touch Icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-
-<!-- Android Chrome Icons -->
-<link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
-
-<!-- Web App Manifest -->
-<link rel="manifest" href="site.webmanifest">
-
-<!-- Theme Color -->
-<meta name="theme-color" content="#3B82F6">
-<meta name="msapplication-TileColor" content="#3B82F6">
-
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <h1>🚀 EVMore Documentation</h1>
-            <p>Revolutionary cross-chain HTLC protocol for seamless token swaps between Ethereum and Cosmos ecosystems</p>
-        </div>
-    </div>
-    
-    <div class="demo-banner">
-        <strong>🎉 New!</strong> Check out our <a href="hackathon/">interactive hackathon demo</a> to see EVMore in action!
-    </div>
-    
     <div class="container">
-        <h2 class="section-title">Documentation</h2>
-        <div class="docs-grid">
-            <a href="hackathon/" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fas fa-rocket"></i>
-                </div>
-                <h3>Interactive Demo</h3>
-                <p>Experience EVMore's cross-chain HTLC protocol with our live demo interface</p>
-                <div class="link-text">
-                    Try Demo <i class="fas fa-arrow-right"></i>
-                </div>
+        <div class="logo">EV</div>
+        <h1>EVMore</h1>
+        <p class="subtitle">Cross-Chain HTLC Protocol</p>
+        <p class="description">
+            Advanced cross-chain Hashed Timelock Contract protocol for secure, 
+            decentralized token swaps across multiple blockchain networks.
+        </p>
+        
+        <div class="status">
+            <h3>🚀 Deployment Status</h3>
+            <p>React application is being deployed. The full interface will be available shortly.</p>
+        </div>
+        
+        <div class="links">
+            <a href="https://github.com/Hydepwns/EVMore" class="btn" target="_blank" rel="noopener">
+                📚 Documentation
             </a>
-            
-            <a href="quick-start.html" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fas fa-rocket"></i>
-                </div>
-                <h3>Quick Start Guide</h3>
-                <p>Get started with EVMore based on your role - Developer, DevOps, Architect, or Product Manager</p>
-                <div class="link-text">
-                    Get Started <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-            
-            <a href="DEVELOPMENT_GUIDE.html" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fas fa-code"></i>
-                </div>
-                <h3>Development Guide</h3>
-                <p>Complete guide for developers to integrate EVMore into their applications</p>
-                <div class="link-text">
-                    Read Guide <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-            
-            <a href="OPERATIONS_GUIDE.html" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fas fa-cogs"></i>
-                </div>
-                <h3>Operations Guide</h3>
-                <p>Operational documentation for running and maintaining EVMore infrastructure</p>
-                <div class="link-text">
-                    Read Guide <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-            
-            <a href="api-reference.html" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fas fa-code"></i>
-                </div>
-                <h3>API Reference</h3>
-                <p>Complete API documentation for all @evmore/* libraries and SDK</p>
-                <div class="link-text">
-                    View API Docs <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-            
-            <a href="https://github.com/Hydepwns/EVMore" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fab fa-github"></i>
-                </div>
-                <h3>GitHub Repository</h3>
-                <p>Source code, issues, and contributions for the EVMore project</p>
-                <div class="link-text">
-                    View Repository <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-            
-            <a href="examples.html" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fas fa-lightbulb"></i>
-                </div>
-                <h3>Code Examples</h3>
-                <p>Practical examples and tutorials for common use cases</p>
-                <div class="link-text">
-                    View Examples <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-            
-            <a href="CONTRIBUTING.md" class="doc-card">
-                <div class="doc-icon">
-                    <i class="fas fa-hands-helping"></i>
-                </div>
-                <h3>Contributing</h3>
-                <p>Guidelines for contributing to the EVMore project</p>
-                <div class="link-text">
-                    Read Guidelines <i class="fas fa-arrow-right"></i>
-                </div>
+            <a href="https://github.com/Hydepwns/EVMore" class="btn primary" target="_blank" rel="noopener">
+                🔗 GitHub
             </a>
         </div>
     </div>
-    
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 EVMore. Built for the hackathon with ❤️</p>
-        </div>
-    </footer>
 </body>
 </html> 
