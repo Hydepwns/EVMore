@@ -4,10 +4,10 @@ resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
-authors = ["1inch Fusion+ Team"]
-edition = "2021"
+authors = ["DROO"]
+edition = "2025"
 license = "MIT"
-repository = "https://github.com/yourusername/1inch-fusion-cosmos"
+repository = "https://github.com/hydepwns/evmore"
 
 [workspace.dependencies]
 cosmwasm-schema = "1.5"
