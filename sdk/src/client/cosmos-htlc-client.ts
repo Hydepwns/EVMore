@@ -1,14 +1,13 @@
-import { SigningStargateClient, StargateClient, DeliverTxResponse, IndexedTx } from '@cosmjs/stargate';
+import { SigningStargateClient, StargateClient, IndexedTx } from '@cosmjs/stargate';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { EncodeObject } from '@cosmjs/proto-signing';
 import { HTLCDetails } from '../types';
 import { validateAmount, isValidHash, isValidCosmosAddress } from '../utils';
+import { hasLogs, CosmosTransactionResult } from '../types/cosmos-htlc';
 
-// Import centralized configuration interfaces
-import { CosmosNetworkConfig as UnifiedCosmosConfig } from '@evmore/utils';
 
-// Use proper Cosmos types
-type CosmosTransactionResult = DeliverTxResponse | IndexedTx;
+
+// Use proper Cosmos types from types/cosmos-htlc
 
 export interface CosmosConfig {
   rpcUrl: string;
@@ -273,13 +272,12 @@ export class CosmosHTLCClient {
   }
 
   /**
-   * Get HTLC details
-   * @param htlcId - HTLC ID
+   * Get HTLC details by ID
+   * @param htlcId - HTLC ID to query
    * @returns Promise resolving to HTLC details or null if not found
    */
   async getHTLC(htlcId: string): Promise<HTLCDetails | null> {
     if (!this.queryClient) {
-      // Create query-only client if not available
       this.queryClient = await StargateClient.connect(this.config.rpcUrl);
     }
 
@@ -290,8 +288,18 @@ export class CosmosHTLCClient {
         }
       };
 
-      // Type assertion needed as queryContractSmart is a CosmWasm extension method
-      const result = await (this.queryClient as any).queryContractSmart(
+      // Use proper type guard instead of unsafe any assertion
+      if (!this.queryClient || typeof this.queryClient !== 'object' || !('queryContractSmart' in this.queryClient)) {
+        throw new Error('queryClient does not support CosmWasm queries');
+      }
+
+      const typedClient = this.queryClient as { queryContractSmart: (address: string, query: Record<string, unknown>) => Promise<WasmHTLC> };
+      
+      if (typeof typedClient.queryContractSmart !== 'function') {
+        throw new Error('queryContractSmart is not a function');
+      }
+
+      const result = await typedClient.queryContractSmart(
         this.config.htlcContract,
         queryMsg
       );
@@ -337,13 +345,27 @@ export class CosmosHTLCClient {
       },
     };
 
-    // Type assertion to WasmHTLCQueryResult
-    const result = await (this.queryClient as any).queryContractSmart(
+    // Use a type guard for CosmWasmQueryClient
+    if (!this.queryClient || typeof this.queryClient !== 'object' || !('queryContractSmart' in this.queryClient)) {
+      throw new Error('queryClient does not support CosmWasm queries');
+    }
+
+    const typedClient = this.queryClient as { queryContractSmart: (address: string, query: Record<string, unknown>) => Promise<WasmHTLCQueryResult> };
+    
+    if (typeof typedClient.queryContractSmart !== 'function') {
+      throw new Error('queryContractSmart is not a function');
+    }
+
+    const rawResult = await typedClient.queryContractSmart(
       this.config.htlcContract,
       queryMsg
-    ) as WasmHTLCQueryResult;
+    );
 
-    return result.htlcs.map((htlc) => ({
+    if (!rawResult || !Array.isArray(rawResult.htlcs)) {
+      return [];
+    }
+
+    return rawResult.htlcs.map((htlc) => ({
       htlcId: htlc.id,
       sender: htlc.sender,
       receiver: htlc.receiver,
@@ -440,49 +462,45 @@ export class CosmosHTLCClient {
    * @returns HTLC ID or null
    */
   private extractHTLCIdFromResult(result: CosmosTransactionResult): string | null {
-    try {
-      // Look for the HTLC ID in transaction events
-      for (const event of result.events || []) {
-        if (event.type === 'wasm') {
-          for (const attr of event.attributes || []) {
-            if (attr.key === 'htlc_id') {
+    if (!hasLogs(result)) {
+      return null;
+    }
+
+    // Safe access to logs with proper type checking
+    const logs = (result as any).logs;
+    if (!Array.isArray(logs)) {
+      return null;
+    }
+    
+    for (const log of logs) {
+      if (!log.events || !Array.isArray(log.events)) {
+        continue;
+      }
+      
+      for (const event of log.events) {
+        if (event.type === 'wasm' && event.attributes && Array.isArray(event.attributes)) {
+          for (const attr of event.attributes) {
+            if (attr.key === 'htlc_id' && attr.value) {
               return attr.value;
             }
           }
         }
       }
-
-      // For IndexedTx, look in logs
-      if ('logs' in result && result.logs && result.logs.length > 0) {
-        for (const log of result.logs) {
-          for (const event of log.events || []) {
-            if (event.type === 'wasm') {
-              for (const attr of event.attributes || []) {
-                if (attr.key === 'htlc_id') {
-                  return attr.value;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      return null;
-    } catch (error) {
-      // Return null on error
-      return null;
     }
+
+    return null;
   }
 
   /**
    * Disconnect clients
    */
-  async disconnect(): Promise<void> {
+  disconnect(): Promise<void> {
     if (this.client) {
       this.client.disconnect();
     }
     if (this.queryClient) {
       this.queryClient.disconnect();
     }
+    return Promise.resolve();
   }
 }

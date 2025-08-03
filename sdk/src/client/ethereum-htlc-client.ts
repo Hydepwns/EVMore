@@ -14,7 +14,6 @@ import {
 } from './ethereum-htlc-client-unified';
 
 // Import centralized configuration interfaces
-import { EthereumNetworkConfig as UnifiedEthereumConfigBase } from '@evmore/utils';
 
 // Legacy interface for backward compatibility
 export interface EthereumConfig {
@@ -170,7 +169,7 @@ export class EthereumHTLCClient {
   /**
    * Get current address from signer
    */
-  async getAddress(): Promise<string> {
+  getAddress(): Promise<string> {
     throw new Error('getAddress() not supported in wrapper. Use unified client directly.');
   }
 
@@ -226,8 +225,8 @@ export class EthereumHTLCClient {
    * Listen for HTLC events
    */
   onHTLCEvent(
-    eventName: 'HTLCCreated' | 'HTLCWithdrawn' | 'HTLCRefunded',
-    callback: (event: { htlcId: string; sender: string; receiver: string; amount: string; hashlock: string; timelock: number }) => void
+    _eventName: 'HTLCCreated' | 'HTLCWithdrawn' | 'HTLCRefunded',
+    _callback: (event: { htlcId: string; sender: string; receiver: string; amount: string; hashlock: string; timelock: number }) => void
   ): void {
     throw new Error('Event listening not supported in wrapper. Use unified client directly.');
   }
@@ -235,17 +234,17 @@ export class EthereumHTLCClient {
   /**
    * Remove event listeners
    */
-  removeAllListeners(eventName?: string): void {
+  removeAllListeners(_eventName?: string): void {
     // No-op for compatibility
   }
 
   /**
    * Get past HTLC events
    */
-  async getPastEvents(
-    eventName: 'HTLCCreated' | 'HTLCWithdrawn' | 'HTLCRefunded',
-    fromBlock: number = 0,
-    toBlock: number | string = 'latest'
+  getPastEvents(
+    _eventName: 'HTLCCreated' | 'HTLCWithdrawn' | 'HTLCRefunded',
+    _fromBlock: number = 0,
+    _toBlock: number | string = 'latest'
   ): Promise<Array<{ htlcId: string; sender: string; receiver: string; amount: string; hashlock: string; timelock: number }>> {
     throw new Error('getPastEvents() not supported in wrapper. Use unified client directly.');
   }

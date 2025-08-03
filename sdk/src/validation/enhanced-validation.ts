@@ -18,7 +18,6 @@ const MIN_AMOUNT = '0.000001'; // Minimum practical amount
 const MAX_TIMELOCK_DURATION = 48 * 3600; // 48 hours
 const MIN_TIMELOCK_BUFFER = 300; // 5 minutes
 const MAX_MEMO_LENGTH = 256;
-const MAX_ROUTE_HOPS = 4;
 
 // Sanitization utilities
 export function sanitizeAmount(amount: string): string {
@@ -64,16 +63,15 @@ export function sanitizeHex(hex: string): string {
     sanitized = sanitized.slice(2);
   }
   
-  // Remove control characters and non-hex characters
-  sanitized = sanitized.replace(/[\u0000-\u001f\u007f-\u009f]/g, '');
+  // Remove non-hex characters (this also removes control characters)
   sanitized = sanitized.replace(/[^0-9a-f]/g, '');
   
   return sanitized;
 }
 
 export function sanitizeMemo(memo: string): string {
-  // Remove control characters
-  let cleaned = memo.replace(/[\x00-\x1F\x7F]/g, '');
+  // Remove control characters by filtering out non-printable characters
+  let cleaned = memo.replace(/[^\x20-\x7E]/g, '');
   
   // Trim to max length
   if (cleaned.length > MAX_MEMO_LENGTH) {
@@ -230,7 +228,7 @@ export function detectSuspiciousPatterns(input: string): string[] {
   }
 
   // Check for null bytes
-  if (/\x00/.test(input)) {
+  if (input.includes('\0')) {
     suspiciousPatterns.push('Null byte detected');
   }
 
