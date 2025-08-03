@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
     font-weight: 400;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -14,7 +14,7 @@
   }
 
   body {
-    @apply m-0 min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    @apply m-0 min-h-screen;
   }
 
   h1 {
@@ -28,6 +28,60 @@
   h3 {
     @apply text-2xl font-semibold;
   }
+
+  /* Custom slider styling */
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .slider::-webkit-slider-track {
+    background: rgba(255, 255, 255, 0.2);
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  .slider::-moz-range-track {
+    background: rgba(255, 255, 255, 0.2);
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  .slider::-moz-range-thumb {
+    background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
 }
 
 @layer components {
@@ -36,7 +90,7 @@
   }
   
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 disabled:hover:bg-primary-600;
+    @apply bg-gradient-to-r from-primary-500 to-secondary-500 text-white hover:from-primary-600 hover:to-secondary-600 focus:ring-primary-500 disabled:hover:from-primary-500 disabled:hover:to-secondary-500 shadow-glow hover:shadow-lg;
   }
   
   .btn-secondary {
@@ -44,18 +98,35 @@
   }
 
   .btn-outline {
-    @apply border-2 border-gray-300 hover:border-gray-400 focus:ring-gray-500 dark:border-gray-600 dark:hover:border-gray-500;
+    @apply border-2 border-white/20 hover:border-white/30 focus:ring-primary-500 bg-white/10 backdrop-blur-md text-white hover:bg-white/20;
   }
   
   .input {
-    @apply block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:border-gray-600;
+    @apply block w-full px-4 py-3 border border-white/20 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 bg-white/10 backdrop-blur-md text-white placeholder-white/50;
   }
   
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6;
+    @apply bg-white/10 backdrop-blur-md rounded-2xl shadow-glass p-6 border border-white/20;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    @apply block text-sm font-medium text-white/90 mb-2;
+  }
+
+  /* Glassmorphism utilities */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-glass;
+  }
+
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-glass;
+  }
+
+  .glass-input {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500;
+  }
+
+  .glass-button {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 text-white hover:bg-white/20 transition-all duration-200;
   }
 }

@@ -38,6 +38,19 @@ export interface PartialFillParams {
   percentage: number;
 }
 
+export interface MarketData {
+  prices: Record<string, number>;
+  gasPrices: Record<string, number>;
+  lastUpdated: number;
+}
+
+export interface SwapFees {
+  networkFee: string;
+  protocolFee: string;
+  relayerFee: string;
+  total: string;
+}
+
 export interface SwapTransaction {
   id: string;
   fromChain: Chain;
@@ -45,6 +58,9 @@ export interface SwapTransaction {
   fromToken: Token;
   toToken: Token;
   amount: string;
+  estimatedOutput?: string;
+  exchangeRate?: number;
+  fees?: SwapFees;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -61,6 +77,7 @@ export interface PartialFillOrder {
   createdAt: Date;
   executedAt?: Date;
   remainingAmount?: string;
+  marketData?: MarketData;
 }
 
 export interface WalletState {

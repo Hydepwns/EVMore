@@ -130,20 +130,32 @@ export default function WalletConnect() {
     onDisconnect: () => void;
   }) => {
     const chainInfo = type === 'ethereum' 
-      ? { name: 'Ethereum (Sepolia)', icon: '🔷', explorer: 'https://sepolia.etherscan.io/address/' }
-      : { name: 'Osmosis (Testnet)', icon: '💧', explorer: 'https://testnet.mintscan.io/osmosis-testnet/account/' };
+      ? { 
+          name: 'Ethereum (Sepolia)', 
+          icon: '🔷', 
+          explorer: 'https://sepolia.etherscan.io/address/',
+          gradient: 'from-blue-500 to-blue-600'
+        }
+      : { 
+          name: 'Osmosis (Testnet)', 
+          icon: '💧', 
+          explorer: 'https://testnet.mintscan.io/osmosis-testnet/account/',
+          gradient: 'from-purple-500 to-purple-600'
+        };
 
     return (
-      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{chainInfo.icon}</span>
-            <h3 className="font-medium">{chainInfo.name}</h3>
+      <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 shadow-glass">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 bg-gradient-to-br ${chainInfo.gradient} rounded-lg flex items-center justify-center`}>
+              <span className="text-lg">{chainInfo.icon}</span>
+            </div>
+            <h3 className="font-semibold text-white">{chainInfo.name}</h3>
           </div>
           {address && (
             <button
               onClick={onDisconnect}
-              className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+              className="text-sm text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors duration-200"
             >
               <LogOut className="w-4 h-4" />
               Disconnect
@@ -152,31 +164,44 @@ export default function WalletConnect() {
         </div>
         
         {address ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-mono">{formatAddress(address)}</span>
-            <button
-              onClick={() => copyAddress(address)}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
-            <a
-              href={`${chainInfo.explorer}${address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </a>
+          <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-mono text-white/90">{formatAddress(address)}</span>
+              <button
+                onClick={() => copyAddress(address)}
+                className="p-1 hover:bg-white/10 rounded transition-colors duration-200"
+              >
+                <Copy className="w-4 h-4 text-white/70 hover:text-white" />
+              </button>
+              <a
+                href={`${chainInfo.explorer}${address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 hover:bg-white/10 rounded transition-colors duration-200"
+              >
+                <ExternalLink className="w-4 h-4 text-white/70 hover:text-white" />
+              </a>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-400 font-medium">Connected</span>
+            </div>
           </div>
         ) : (
           <button
             onClick={onConnect}
             disabled={isConnecting}
-            className="btn btn-outline btn-sm w-full flex items-center justify-center gap-2"
+            className={`
+              w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2
+              transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+              ${isConnecting 
+                ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/20' 
+                : 'bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white shadow-glow hover:shadow-lg'
+              }
+            `}
           >
             <Wallet className="w-4 h-4" />
-            Connect Wallet
+            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
           </button>
         )}
       </div>
@@ -184,9 +209,9 @@ export default function WalletConnect() {
   };
 
   return (
-    <div className="card">
-      <h3 className="text-lg font-semibold mb-4">Wallet Connection</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <h3 className="text-xl font-bold text-white mb-4">Wallet Connection</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <WalletCard
           type="ethereum"
           address={ethereumAddress}
