@@ -104,3 +104,9 @@ pnpm-lock.yaml
 .yarn/unplugged/
 .yarn/build-state.yml
 .yarn/install-state.gz.turbo/
+
+# Turbo
+.turbo/
+
+# TypeScript build info
+*.tsbuildinfo
